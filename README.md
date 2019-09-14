@@ -8,6 +8,8 @@ Execute the following command in a power shell window (Administrator).
 
 `$ npm install --global --production windows-build-tools`
 
+Now you can use the following to add the connector to your project.
+
 `$ npm i voicemeeter-connector`
 
 ## Use it in your project
