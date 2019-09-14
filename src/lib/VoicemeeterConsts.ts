@@ -1,3 +1,6 @@
+/**
+ * @ignore
+ */
 export const InterfaceTypes = {
 	strip: 0,
 	bus: 1

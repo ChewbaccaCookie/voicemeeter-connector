@@ -4,10 +4,25 @@ import refArray from 'ref-array';
 import { Device, tLibVM, voiceMeeterTypes } from '../types/VoicemeeterDLL';
 import { BusProperties, StripProperties } from './VoicemeeterConsts';
 
+/**
+ * @ignore
+ */
 const CharArray = refArray('char');
+/**
+ * @ignore
+ */
 const LongArray = refArray('long');
+/**
+ * @ignore
+ */
 const FloatArray = refArray('float');
+/**
+ * @ignore
+ */
 let libVM: tLibVM;
+/**
+ * @ignore
+ */
 let instance: Voicemeeter;
 
 export default class Voicemeeter {
@@ -44,8 +59,8 @@ export default class Voicemeeter {
 	private isConnected = false;
 	private outputDevices: Device[] = [];
 	private inputDevices: Device[] = [];
-	private version = '';
-	private type = '' as voiceMeeterTypes;
+	private version: string = '';
+	private type: voiceMeeterTypes;
 	private eventPool = [] as Array<() => void>;
 
 	/**
@@ -69,13 +84,6 @@ export default class Voicemeeter {
 		throw new Error('Connection failed');
 	};
 
-	public getVersion = () => {
-		return this.version;
-	};
-	public getType = () => {
-		return this.type;
-	};
-
 	/**
 	 * Getter $outputDevices
 	 * @return {Device[] }
@@ -90,6 +98,22 @@ export default class Voicemeeter {
 	 */
 	public get $inputDevices(): Device[] {
 		return this.inputDevices;
+	}
+
+	/**
+	 * Getter $version
+	 * @return {string }
+	 */
+	public get $version(): string {
+		return this.version;
+	}
+
+	/**
+	 * Getter $type
+	 * @return {voiceMeeterTypes}
+	 */
+	public get $type(): voiceMeeterTypes {
+		return this.type;
 	}
 
 	/**

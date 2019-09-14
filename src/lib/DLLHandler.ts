@@ -1,5 +1,8 @@
 import Registry from 'winreg';
 
+/**
+ * @ignore
+ */
 export async function getDLLPath(): Promise<any> {
 	const regKey = new Registry({
 		hive: Registry.HKLM,
