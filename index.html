@@ -67,32 +67,56 @@
 				<a href="#voicemeeter-connector" id="voicemeeter-connector" style="color: inherit; text-decoration: none;">
 					<h1>Voicemeeter Connector</h1>
 				</a>
-				<p>Voicemeeter Connector is a Typescript / Node.js connector to use the official VoicemeeterRemoteAPI of <a href="https://www.vb-audio.com/Voicemeeter/index.htm">Voicemeeter</a> or <a href="https://www.vb-audio.com/Voicemeeter/banana.htm">Voicemeeter Banana</a>. The official API is available <a href="https://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf">here</a>. </p>
-				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
-					<h2>Usage</h2>
-				</a>
+				<p>Voicemeeter Connector is a Node.js (Typescript) connector to use the official VoicemeeterRemoteAPI of <a href="https://www.vb-audio.com/Voicemeeter/index.htm">Voicemeeter</a> or <a href="https://www.vb-audio.com/Voicemeeter/banana.htm">Voicemeeter Banana</a>. The official API is available <a href="https://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf">here</a>.</p>
 				<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
-					<h3>Installation</h3>
+					<h2>Installation</h2>
 				</a>
 				<p><code>$ npm i voicemeeter-connector</code></p>
 				<a href="#use-it-in-your-project" id="use-it-in-your-project" style="color: inherit; text-decoration: none;">
-					<h3>Use it in your project</h3>
+					<h2>Use it in your project</h2>
 				</a>
-				<pre><code class="language-javascript"><span class="hljs-keyword">import</span> Voicemeeter <span class="hljs-keyword">from</span> <span class="hljs-string">"voicemeeter-connector"</span>;
+				<a href="#javascript" id="javascript" style="color: inherit; text-decoration: none;">
+					<h3>Javascript</h3>
+				</a>
+				<pre><code class="language-javascript"><span class="hljs-keyword">const</span> VoiceMeeter = <span class="hljs-built_in">require</span>(<span class="hljs-string">'voicemeeter-connector'</span>);
 
-Voicemeeter.init().then(<span class="hljs-function"><span class="hljs-params">vm</span> =&gt;</span> {
+VoiceMeeter.default.init().then(<span class="hljs-function"><span class="hljs-params">vm</span> =&gt;</span> {
     <span class="hljs-comment">// Connect to your Voicemeeter client</span>
-    vm.connect(); 
-
-       <span class="hljs-comment">// Get Gain of strip 0 </span>
-    <span class="hljs-keyword">let</span> gain = vm.getStripParameter(<span class="hljs-number">0</span>, StripProperties.Gain);
+    vm.connect();
 
     <span class="hljs-comment">// Sets gain of strip 0 to -10db</span>
-    vm.setStripParameter(<span class="hljs-number">0</span>, StripProperties.Gain, - <span class="hljs-number">10</span>);
+    vm.setStripParameter(<span class="hljs-number">0</span>, VoiceMeeter.StripProperties.Gain, <span class="hljs-number">-10</span>);
 
+    <span class="hljs-comment">// Get Gain of strip 0</span>
+    <span class="hljs-keyword">let</span> gain = vm.getStripParameter(<span class="hljs-number">0</span>, VoiceMeeter.StripProperties.Gain);
+
+    <span class="hljs-comment">//Disconnect voicemeeter client</span>
+    setTimeout(vm.disconnect, <span class="hljs-number">100</span>);
+});</code></pre>
+				<a href="#typescript" id="typescript" style="color: inherit; text-decoration: none;">
+					<h3>Typescript</h3>
+				</a>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> VoiceMeeter, { StripProperties } <span class="hljs-keyword">from</span> <span class="hljs-string">'voicemeeter-connector'</span>;
+
+VoiceMeeter.init().then(<span class="hljs-function"><span class="hljs-params">vm</span> =&gt;</span> {
+    <span class="hljs-comment">// Connect to your voicemeeter client</span>
+    vm.connect();
+
+    <span class="hljs-comment">// Sets gain of strip 0 to -10db</span>
+    vm.setStripParameter(<span class="hljs-number">0</span>, StripProperties.Gain, <span class="hljs-number">-10</span>);
+
+    <span class="hljs-comment">// Get Gain of strip 0</span>
+    <span class="hljs-keyword">let</span> gain = vm.getStripParameter(<span class="hljs-number">0</span>, VoiceMeeter.StripProperties.Gain);
+
+    <span class="hljs-comment">//Disconnect voicemeeter client</span>
+    setTimeout(vm.disconnect, <span class="hljs-number">100</span>);
 });</code></pre>
 				<p><strong>Strip</strong> = Inputs (left side of voicemeeter)</p>
 				<p><strong>Bus</strong> = Outputs (right side of voicemeeter)</p>
+				<a href="#documetation" id="documetation" style="color: inherit; text-decoration: none;">
+					<h2>Documetation</h2>
+				</a>
+				<p>See Documentation on <a href="https://warhunter45.github.io/voicemeeter-connector/">https://warhunter45.github.io/voicemeeter-connector/</a></p>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -112,7 +136,7 @@ Voicemeeter.init().then(<span class="hljs-function"><span class="hljs-params">vm
 						<a href="enums/stripproperties.html" class="tsd-kind-icon">Strip<wbr>Properties</a>
 					</li>
 					<li class=" tsd-kind-class">
-						<a href="classes/voicemeeter.html" class="tsd-kind-icon">Voice<wbr>Meeter</a>
+						<a href="classes/voicemeeter.html" class="tsd-kind-icon">Voicemeeter</a>
 					</li>
 					<li class=" tsd-kind-variable tsd-is-not-exported">
 						<a href="globals.html#chararray" class="tsd-kind-icon">Char<wbr>Array</a>
