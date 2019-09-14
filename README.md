@@ -4,6 +4,8 @@ Voicemeeter Connector is a Node.js (Typescript) connector to use the official Vo
 
 ## Installation
 
+`$ npm install --global --production windows-build-tools`
+
 `$ npm i voicemeeter-connector`
 
 ## Use it in your project
