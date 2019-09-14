@@ -1,7 +1,7 @@
 import ffi from 'ffi';
 import { getDLLPath } from './DLLHandler';
 import refArray from 'ref-array';
-import { Device, tLibVM, voiceMeeterTypes } from '../types/VoicemeeterDLL';
+import { Device, tLibVM, voiceMeeterTypes } from '../types/Voicemeeter';
 import { BusProperties, StripProperties } from './VoicemeeterConsts';
 
 /**
