@@ -7,7 +7,6 @@
   "module": "build/module/index.js",
   "repository": "https://github.com/warhunter45/voicemeeter-connector",
   "license": "MIT",
-  "keywords": [],
   "scripts": {
     "describe": "npm-scripts-info",
     "build": "run-s clean && run-p build:*",
@@ -98,5 +97,10 @@
     "exclude": [
       "**/*.spec.js"
     ]
-  }
+  },
+  "keywords": [
+    "voicemeeter",
+    "api",
+    "connector"
+  ]
 }
