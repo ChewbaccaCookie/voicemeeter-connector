@@ -4,6 +4,7 @@ Voicemeeter Connector is a Node.js (Typescript) connector to use the official Vo
 
 ## Installation
 
+Execute the following command in a power shell window (Administrator).
 `$ npm install --global --production windows-build-tools`
 
 `$ npm i voicemeeter-connector`
