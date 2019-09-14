@@ -52,9 +52,9 @@ export default class VoiceMeeter {
 	/**
 	 * Starts a connection to VoiceMeeter
 	 */
-	public login = () => {
+	public connect = () => {
 		if (!this.isInitialised) {
-			throw new Error('Await the initialisation before login');
+			throw new Error('Await the initialisation before connect');
 		}
 		if (this.isConnected) {
 			return;
@@ -73,7 +73,7 @@ export default class VoiceMeeter {
 	/**
 	 * Terminates the connection to VoiceMeeter
 	 */
-	public logout = () => {
+	public disconnect = () => {
 		if (!this.isConnected) {
 			throw new Error('Not connected ');
 		}
@@ -81,7 +81,7 @@ export default class VoiceMeeter {
 			this.isConnected = false;
 			return;
 		}
-		throw 'Logout failed';
+		throw 'Disconnect failed';
 	};
 
 	/**

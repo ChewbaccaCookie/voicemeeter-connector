@@ -9,18 +9,18 @@ VoiceMeeter.init().then(vm => {
 		if (vm) t.pass();
 	});
 
-	test('Voicemeeter Login', t => {
-		vm.login();
+	test('Voicemeeter Connect', t => {
+		vm.connect();
 		t.log('Login Completed');
 		t.pass();
 	});
 
-	test('Login error', t => {
+	test('Connection error', t => {
 		let vmTest = new VoiceMeeter();
 		const error = t.throws(() => {
-			vmTest.login();
+			vmTest.connect();
 		});
-		t.is(error.message, 'Await the initialisation before login');
+		t.is(error.message, 'Await the initialisation before connect');
 	});
 
 	test('Update Device List', t => {
