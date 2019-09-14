@@ -1,6 +1,6 @@
 import Registry from 'winreg';
 
-export async function getDLLPath() {
+export async function getDLLPath(): Promise<any> {
 	const regKey = new Registry({
 		hive: Registry.HKLM,
 		key: '\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\VB:Voicemeeter {17359A74-1236-5467}'
@@ -10,8 +10,8 @@ export async function getDLLPath() {
 			if (err) {
 				throw new Error(err);
 			}
-			let unistallerPath = items.find((i: any) => i.name === 'UninstallString').value;
-			let fileNameIndex = unistallerPath.lastIndexOf('\\');
+			const unistallerPath = items.find((i: any) => i.name === 'UninstallString').value;
+			const fileNameIndex = unistallerPath.lastIndexOf('\\');
 			resolve(unistallerPath.slice(0, fileNameIndex));
 		});
 	});

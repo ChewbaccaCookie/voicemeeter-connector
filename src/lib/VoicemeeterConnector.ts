@@ -1,30 +1,21 @@
-import { getDLLPath } from './DLLHandler';
-import { tLibVM, voiceMeeterTypes, Device } from '../types/VoicemeeterDLL';
-
 import ffi from 'ffi';
+import { getDLLPath } from './DLLHandler';
 import refArray from 'ref-array';
-import { StripProperties, BusProperties } from './VoicemeeterConsts';
-const CharArray = refArray('char'),
-	LongArray = refArray('long'),
-	FloatArray = refArray('float');
+import { Device, tLibVM, voiceMeeterTypes } from '../types/VoicemeeterDLL';
+import { BusProperties, StripProperties } from './VoicemeeterConsts';
 
-var libVM: tLibVM;
-var instance: VoiceMeeter;
+const CharArray = refArray('char');
+const LongArray = refArray('long');
+const FloatArray = refArray('float');
+let libVM: tLibVM;
+let instance: VoiceMeeter;
 
 export default class VoiceMeeter {
-	isInitialised = false;
-	isConnected = false;
-	outputDevices = [] as Device[];
-	inputDevices = [] as Device[];
-	version = '';
-	type = '' as voiceMeeterTypes;
-	eventPool = [] as (() => any)[];
-
 	/**
 	 * Initializes the voice meeter dll connection.
 	 * This call is neccessary to use the api. It returns a promise with a VoiceMeeter instance
 	 */
-	static init() {
+	public static init(): Promise<VoiceMeeter> {
 		return new Promise(async (resolve: (instance: VoiceMeeter) => any) => {
 			if (!instance) {
 				instance = new VoiceMeeter();
@@ -49,6 +40,14 @@ export default class VoiceMeeter {
 		});
 	}
 
+	private isInitialised = false;
+	private isConnected = false;
+	private outputDevices = [] as Device[];
+	private inputDevices = [] as Device[];
+	private version = '';
+	private type = '' as voiceMeeterTypes;
+	private eventPool = [] as Array<() => void>;
+
 	/**
 	 * Starts a connection to VoiceMeeter
 	 */
@@ -59,7 +58,7 @@ export default class VoiceMeeter {
 		if (this.isConnected) {
 			return;
 		}
-		if (libVM.VBVMR_Login() == 0) {
+		if (libVM.VBVMR_Login() === 0) {
 			this.isConnected = true;
 			this.type = this.getVoicemeeterType();
 			this.version = this.getVoicemeeterVersion();
@@ -70,6 +69,13 @@ export default class VoiceMeeter {
 		throw new Error('Connection failed');
 	};
 
+	public getVersion = () => {
+		return this.version;
+	};
+	public getType = () => {
+		return this.type;
+	};
+
 	/**
 	 * Terminates the connection to VoiceMeeter
 	 */
@@ -77,11 +83,11 @@ export default class VoiceMeeter {
 		if (!this.isConnected) {
 			throw new Error('Not connected ');
 		}
-		if (libVM.VBVMR_Logout() == 0) {
+		if (libVM.VBVMR_Logout() === 0) {
 			this.isConnected = false;
 			return;
 		}
-		throw 'Disconnect failed';
+		throw new Error('Disconnect failed');
 	};
 
 	/**
@@ -95,9 +101,9 @@ export default class VoiceMeeter {
 		this.inputDevices = [];
 		const outputDeviceNumber = libVM.VBVMR_Output_GetDeviceNumber();
 		for (let i = 0; i < outputDeviceNumber; i++) {
-			let hardwareIdPtr = new CharArray(256) as any;
-			let namePtr = new CharArray(256) as any;
-			let typePtr = new LongArray(1) as any;
+			const hardwareIdPtr = new CharArray(256) as any;
+			const namePtr = new CharArray(256) as any;
+			const typePtr = new LongArray(1) as any;
 
 			libVM.VBVMR_Output_GetDeviceDescA(i, typePtr, namePtr, hardwareIdPtr);
 			this.outputDevices.push({
@@ -109,9 +115,9 @@ export default class VoiceMeeter {
 
 		const inputDeviceNumber = libVM.VBVMR_Input_GetDeviceNumber();
 		for (let i = 0; i < inputDeviceNumber; i++) {
-			let hardwareIdPtr = new CharArray(256) as any;
-			let namePtr = new CharArray(256) as any;
-			let typePtr = new LongArray(1) as any;
+			const hardwareIdPtr = new CharArray(256) as any;
+			const namePtr = new CharArray(256) as any;
+			const typePtr = new LongArray(1) as any;
 
 			libVM.VBVMR_Input_GetDeviceDescA(i, typePtr, namePtr, hardwareIdPtr);
 			this.inputDevices.push({
@@ -120,45 +126,6 @@ export default class VoiceMeeter {
 				type: typePtr[0]
 			});
 		}
-	};
-
-	/**
-	 * Checks whether properties has been changed and calls all event listeners
-	 */
-	private checkPropertyChange = () => {
-		if (this.isParametersDirty() === 1) {
-			this.eventPool.forEach(eventListener => {
-				eventListener();
-			});
-		}
-	};
-
-	/**
-	 * Gets installed voicemeeter type.
-	 * Means Voicemeeter or Voicemeeter Banana
-	 */
-	private getVoicemeeterType = (): voiceMeeterTypes => {
-		let typePtr = new LongArray(1);
-		if (libVM.VBVMR_GetVoicemeeterType(typePtr) !== 0) throw 'running failed';
-		switch (typePtr[0]) {
-			case 1: // Voicemeeter
-				return 'voicemeeter';
-			case 2: // Voicemeeter Banana
-				return 'voicemeeterBanana';
-			default:
-				throw new Error('Voicemeeter seems not to be installed');
-		}
-	};
-
-	/**
-	 * Returns the installed voicemeeter version
-	 */
-	private getVoicemeeterVersion = () => {
-		const versionPtr = new LongArray(1) as any;
-		if (libVM.VBVMR_GetVoicemeeterVersion(versionPtr) !== 0) {
-			throw 'running failed';
-		}
-		return versionPtr;
 	};
 
 	/**
@@ -188,24 +155,6 @@ export default class VoiceMeeter {
 	};
 
 	/**
-	 * Gets a parameter of voicemeeter
-	 * @param  {'Strip'|'Bus'} selector Strip or Bus
-	 * @param  {number} index Number of strip or bus
-	 * @param  {StripProperties|BusProperties} property Property which should be read
-	 */
-	private getParameter = (selector: 'Strip' | 'Bus', index: number, property: StripProperties | BusProperties) => {
-		let parameterName = `${selector}[${index}].${property}`;
-		if (!this.isConnected) {
-			throw new Error('Not correct connected ');
-		}
-		var hardwareIdPtr = new Buffer(parameterName.length + 1);
-		hardwareIdPtr.write(parameterName);
-		var namePtr = new FloatArray(1);
-		libVM.VBVMR_GetParameterFloat(hardwareIdPtr, namePtr);
-		return namePtr[0];
-	};
-
-	/**
 	 * Sets a parameter of a strip.
 	 * @param  {number} index Strip number
 	 * @param  {StripProperties} property Propertyname which should be changed
@@ -226,6 +175,72 @@ export default class VoiceMeeter {
 	};
 
 	/**
+	 * @param  {()=>any} fn Function which should be called if something changes
+	 */
+	public attachChangeEvent = (fn: () => any) => {
+		this.eventPool.push(fn);
+	};
+
+	/**
+	 * Checks whether properties has been changed and calls all event listeners
+	 */
+	private checkPropertyChange = () => {
+		if (this.isParametersDirty() === 1) {
+			this.eventPool.forEach(eventListener => {
+				eventListener();
+			});
+		}
+	};
+
+	/**
+	 * Gets installed voicemeeter type.
+	 * Means Voicemeeter or Voicemeeter Banana
+	 */
+	private getVoicemeeterType = (): voiceMeeterTypes => {
+		const typePtr = new LongArray(1);
+		if (libVM.VBVMR_GetVoicemeeterType(typePtr) !== 0) {
+			throw new Error('running failed');
+		}
+		switch (typePtr[0]) {
+			case 1: // Voicemeeter
+				return 'voicemeeter';
+			case 2: // Voicemeeter Banana
+				return 'voicemeeterBanana';
+			default:
+				throw new Error('Voicemeeter seems not to be installed');
+		}
+	};
+
+	/**
+	 * Returns the installed voicemeeter version
+	 */
+	private getVoicemeeterVersion = () => {
+		const versionPtr = new LongArray(1) as any;
+		if (libVM.VBVMR_GetVoicemeeterVersion(versionPtr) !== 0) {
+			throw new Error('running failed');
+		}
+		return versionPtr;
+	};
+
+	/**
+	 * Gets a parameter of voicemeeter
+	 * @param  {'Strip'|'Bus'} selector Strip or Bus
+	 * @param  {number} index Number of strip or bus
+	 * @param  {StripProperties|BusProperties} property Property which should be read
+	 */
+	private getParameter = (selector: 'Strip' | 'Bus', index: number, property: StripProperties | BusProperties) => {
+		const parameterName = `${selector}[${index}].${property}`;
+		if (!this.isConnected) {
+			throw new Error('Not correct connected ');
+		}
+		let hardwareIdPtr = new Buffer(parameterName.length + 1);
+		hardwareIdPtr.write(parameterName);
+		let namePtr = new FloatArray(1);
+		libVM.VBVMR_GetParameterFloat(hardwareIdPtr, namePtr);
+		return namePtr[0];
+	};
+
+	/**
 	 * Sets a parameter of a bus or Strip
 	 * @param  {'Strip'|'Bus'} selector
 	 * @param  {number} index Number of strip or bus
@@ -241,12 +256,5 @@ export default class VoiceMeeter {
 		script.fill(0);
 		script.write(scriptString);
 		libVM.VBVMR_SetParameters(script);
-	};
-
-	/**
-	 * @param  {()=>any} fn Function which should be called if something changes
-	 */
-	public attachChangeEvent = (fn: () => any) => {
-		this.eventPool.push(fn);
 	};
 }
