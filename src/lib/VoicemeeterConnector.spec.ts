@@ -27,7 +27,7 @@ VoiceMeeter.init().then(vm => {
 
 	test('Update Device List', t => {
 		vm.updateDeviceList();
-		if (vm.inputDevices.length > 0 && vm.outputDevices.length > 0) {
+		if (vm.$inputDevices.length > 0 && vm.$outputDevices.length > 0) {
 			t.pass();
 		}
 	});

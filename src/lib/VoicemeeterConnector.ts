@@ -42,8 +42,8 @@ export default class VoiceMeeter {
 
 	private isInitialised = false;
 	private isConnected = false;
-	private outputDevices = [] as Device[];
-	private inputDevices = [] as Device[];
+	private outputDevices: Device[] = [];
+	private inputDevices: Device[] = [];
 	private version = '';
 	private type = '' as voiceMeeterTypes;
 	private eventPool = [] as Array<() => void>;
@@ -75,6 +75,22 @@ export default class VoiceMeeter {
 	public getType = () => {
 		return this.type;
 	};
+
+    /**
+     * Getter $outputDevices
+     * @return {Device[] }
+     */
+	public get $outputDevices(): Device[]  {
+		return this.outputDevices;
+	}
+	
+    /**
+     * Getter $inputDevices
+     * @return {Device[] }
+     */
+	public get $inputDevices(): Device[]  {
+		return this.inputDevices;
+	}
 
 	/**
 	 * Terminates the connection to VoiceMeeter
