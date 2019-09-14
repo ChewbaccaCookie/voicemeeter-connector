@@ -10,7 +10,7 @@ const FloatArray = refArray('float');
 let libVM: tLibVM;
 let instance: VoiceMeeter;
 
-export default class VoiceMeeter {
+export class VoiceMeeter {
 	/**
 	 * Initializes the voice meeter dll connection.
 	 * This call is neccessary to use the api. It returns a promise with a VoiceMeeter instance
@@ -76,19 +76,19 @@ export default class VoiceMeeter {
 		return this.type;
 	};
 
-    /**
-     * Getter $outputDevices
-     * @return {Device[] }
-     */
-	public get $outputDevices(): Device[]  {
+	/**
+	 * Getter $outputDevices
+	 * @return {Device[] }
+	 */
+	public get $outputDevices(): Device[] {
 		return this.outputDevices;
 	}
-	
-    /**
-     * Getter $inputDevices
-     * @return {Device[] }
-     */
-	public get $inputDevices(): Device[]  {
+
+	/**
+	 * Getter $inputDevices
+	 * @return {Device[] }
+	 */
+	public get $inputDevices(): Device[] {
 		return this.inputDevices;
 	}
 

@@ -1,6 +1,6 @@
 import test from 'ava';
-import VoiceMeeter from './VoicemeeterConnector';
 import { BusProperties, StripProperties } from './VoicemeeterConsts';
+import { VoiceMeeter } from './VoicemeeterConnector';
 
 let defaultGain: any;
 
