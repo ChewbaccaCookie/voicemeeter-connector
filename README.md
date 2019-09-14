@@ -31,3 +31,6 @@ Voicemeeter.init().then(vm => {
 **Strip** = Inputs (left side of voicemeeter)
 
 **Bus** = Outputs (right side of voicemeeter)
+
+## Documetation
+See Documentation on [https://warhunter45.github.io/voicemeeter-connector/](https://warhunter45.github.io/voicemeeter-connector/)
