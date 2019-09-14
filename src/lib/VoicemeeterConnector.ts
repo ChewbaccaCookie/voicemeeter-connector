@@ -8,17 +8,17 @@ const CharArray = refArray('char');
 const LongArray = refArray('long');
 const FloatArray = refArray('float');
 let libVM: tLibVM;
-let instance: VoiceMeeter;
+let instance: Voicemeeter;
 
-export class VoiceMeeter {
+export default class Voicemeeter {
 	/**
 	 * Initializes the voice meeter dll connection.
 	 * This call is neccessary to use the api. It returns a promise with a VoiceMeeter instance
 	 */
-	public static init(): Promise<VoiceMeeter> {
-		return new Promise(async (resolve: (instance: VoiceMeeter) => any) => {
+	public static init(): Promise<Voicemeeter> {
+		return new Promise(async (resolve: (instance: Voicemeeter) => any) => {
 			if (!instance) {
-				instance = new VoiceMeeter();
+				instance = new Voicemeeter();
 			}
 			libVM = ffi.Library((await getDLLPath()) + '/VoicemeeterRemote64.dll', {
 				VBVMR_Login: ['long', []],
@@ -249,7 +249,7 @@ export class VoiceMeeter {
 		if (!this.isConnected) {
 			throw new Error('Not correct connected ');
 		}
-		let hardwareIdPtr = new Buffer(parameterName.length + 1);
+		let hardwareIdPtr = Buffer.alloc(parameterName.length + 1);
 		hardwareIdPtr.write(parameterName);
 		let namePtr = new FloatArray(1);
 		libVM.VBVMR_GetParameterFloat(hardwareIdPtr, namePtr);
@@ -268,7 +268,7 @@ export class VoiceMeeter {
 			throw new Error('Not connected ');
 		}
 		let scriptString = `${selector}[${index}].${property}=${value};`;
-		const script = new Buffer(scriptString.length + 1);
+		const script = Buffer.alloc(scriptString.length + 1);
 		script.fill(0);
 		script.write(scriptString);
 		libVM.VBVMR_SetParameters(script);

@@ -1,10 +1,10 @@
 import test from 'ava';
 import { BusProperties, StripProperties } from './VoicemeeterConsts';
-import { VoiceMeeter } from './VoicemeeterConnector';
+import Voicemeeter from './VoicemeeterConnector';
 
 let defaultGain: any;
 
-VoiceMeeter.init().then(vm => {
+Voicemeeter.init().then(vm => {
 	test('Voicemeeter Init', t => {
 		if (vm) {
 			t.pass();
@@ -18,7 +18,7 @@ VoiceMeeter.init().then(vm => {
 	});
 
 	test('Connection error', t => {
-		const vmTest = new VoiceMeeter();
+		const vmTest = new Voicemeeter();
 		const error = t.throws(() => {
 			vmTest.connect();
 		});
