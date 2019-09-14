@@ -94,6 +94,7 @@
     "singleQuote": true
   },
   "nyc": {
+	"lines": 40,
     "extends": "@istanbuljs/nyc-config-typescript",
     "exclude": [
       "**/*.spec.js"
