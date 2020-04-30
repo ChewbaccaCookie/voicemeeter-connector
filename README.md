@@ -60,4 +60,4 @@ VoiceMeeter.init().then(vm => {
 
 ## Documetation
 
-See Documentation on [https://chewbaccacookie.github.io/voicemeeter-connector/](https://chewbaccacookie.github.io/voicemeeter-connector/)
+See Documentation on https://chewbaccacookie.github.io/voicemeeter-connector/classes/voicemeeter.html
