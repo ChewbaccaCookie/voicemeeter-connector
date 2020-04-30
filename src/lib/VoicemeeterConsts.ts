@@ -3,7 +3,7 @@
  */
 export const InterfaceTypes = {
 	strip: 0,
-	bus: 1
+	bus: 1,
 };
 
 export enum StripProperties {
@@ -28,9 +28,12 @@ export enum StripProperties {
 	A1 = 'A1',
 	A2 = 'A2',
 	A3 = 'A3',
+	A4 = 'A4',
+	A5 = 'A5',
 	B1 = 'B1',
 	B2 = 'B2',
-	FadeTo = 'FadeTo'
+	B3 = 'B3',
+	FadeTo = 'FadeTo',
 }
 export enum BusProperties {
 	Mono = 'Mono',
@@ -42,5 +45,5 @@ export enum BusProperties {
 	BmixMode = 'mode.Bmix',
 	RepeatMode = 'mode.Repeat',
 	CompositeMode = 'mode.Composite',
-	FadeTo = 'FadeTo'
+	FadeTo = 'FadeTo',
 }
