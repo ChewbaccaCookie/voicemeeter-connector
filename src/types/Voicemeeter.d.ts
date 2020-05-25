@@ -1,4 +1,4 @@
-export type voiceMeeterTypes = 'voicemeeter' | 'voicemeeterBanana' | undefined;
+export type voiceMeeterTypes = 'voicemeeter' | 'voicemeeterBanana' | 'voicemeeterPotato' | undefined;
 
 export interface tLibVM {
 	VBVMR_Login: any;

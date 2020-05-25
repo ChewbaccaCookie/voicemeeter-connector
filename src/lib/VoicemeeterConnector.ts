@@ -234,7 +234,7 @@ export default class Voicemeeter {
 
 	/**
 	 * Gets installed voicemeeter type.
-	 * Means Voicemeeter or Voicemeeter Banana
+	 * Means Voicemeeter(normal,banana,potato)
 	 */
 	private getVoicemeeterType = (): voiceMeeterTypes => {
 		const typePtr = new LongArray(1);
@@ -246,6 +246,8 @@ export default class Voicemeeter {
 				return 'voicemeeter';
 			case 2: // Voicemeeter Banana
 				return 'voicemeeterBanana';
+			case 3: // Voicemeeter Potato
+				return 'voicemeeterPotato';
 			default:
 				throw new Error('Voicemeeter seems not to be installed');
 		}
