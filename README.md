@@ -1,6 +1,6 @@
 # Voicemeeter Connector
 
-Voicemeeter Connector is a Node.js (Typescript) connector to use the official VoicemeeterRemoteAPI of [Voicemeeter](https://www.vb-audio.com/Voicemeeter/index.htm) or [Voicemeeter Banana](https://www.vb-audio.com/Voicemeeter/banana.htm). The official API is available [here](https://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf).
+Voicemeeter Connector is a Node.js (Typescript) connector to use the official VoicemeeterRemoteAPI of [Voicemeeter](https://www.vb-audio.com/Voicemeeter/index.htm),[Voicemeeter Banana](https://www.vb-audio.com/Voicemeeter/banana.htm) and [Voicemeeter Potato](https://www.vb-audio.com/Voicemeeter/potato.htm). The official API is available [here](https://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf).
 
 ## Installation
 
