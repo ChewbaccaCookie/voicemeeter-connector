@@ -24,7 +24,7 @@ Now you can use the following to add the connector to your project.
 ### Basic Example
 
 ```typescript
-import { Voicemeeter, StripProperties } from "../src/index";
+import { Voicemeeter, StripProperties } from "voicemeeter-connector";
 
 Voicemeeter.init().then(async (vm) => {
 	// Connect to your voicemeeter client
