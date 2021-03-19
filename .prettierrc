@@ -1,5 +1,9 @@
 {
+	"useTabs": true,
 	"tabWidth": 4,
-	"semi": true,
-	"printWidth": 120
+	"singleQuote": false,
+	"printWidth": 140,
+	"endOfLine": "crlf",
+	"jsxSingleQuote": false,
+	"semi": true
 }

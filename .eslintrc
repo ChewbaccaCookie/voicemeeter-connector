@@ -1,0 +1,44 @@
+{
+	"extends": [
+		"airbnb-typescript/base",
+		"airbnb/hooks",
+		"plugin:@typescript-eslint/recommended",
+		"prettier",
+		"plugin:prettier/recommended"
+	],
+	"plugins": ["@typescript-eslint"],
+	"env": {
+		"node": true,
+		"es6": true
+	},
+	"globals": {
+		"Atomics": "readonly",
+		"SharedArrayBuffer": "readonly"
+	},
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"ecmaVersion": 2020,
+		"sourceType": "module",
+		"project": "./tsconfig.json"
+	},
+	"rules": {
+		"linebreak-style": "off",
+		"@typescript-eslint/explicit-module-boundary-types": "off",
+		"prettier/prettier": [
+			"error",
+			{
+				"endOfLine": "auto",
+				"useTabs": true,
+				"tabWidth": 4,
+				"singleQuote": false,
+				"printWidth": 140,
+				"jsxSingleQuote": false,
+				"semi": true
+			}
+		],
+		"@typescript-eslint/no-explicit-any": "off",
+		"no-param-reassign": "off",
+		"@typescript-eslint/lines-between-class-members": "off",
+		"no-plusplus": "off"
+	}
+}

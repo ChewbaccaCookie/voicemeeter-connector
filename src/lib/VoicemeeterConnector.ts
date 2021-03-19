@@ -1,25 +1,26 @@
-import ffi from 'ffi';
-import { getDLLPath } from './DLLHandler';
-import refArray from 'ref-array';
-import { Device, tLibVM, voiceMeeterTypes } from '../types/Voicemeeter';
-import { BusProperties, StripProperties } from './VoicemeeterConsts';
+/* eslint-disable no-control-regex */
+import ffi from "ffi-napi";
+import refArray from "ref-array-napi";
+import DLLHandler from "./DLLHandler";
+import { Device, VMLibrary, VoiceMeeterTypes } from "../types/VoicemeeterTypes";
+import { BusProperties, StripProperties } from "./VoicemeeterConsts";
 
 /**
  * @ignore
  */
-const CharArray = refArray('char');
+const CharArray = refArray("char");
 /**
  * @ignore
  */
-const LongArray = refArray('long');
+const LongArray = refArray("long");
 /**
  * @ignore
  */
-const FloatArray = refArray('float');
+const FloatArray = refArray("float");
 /**
  * @ignore
  */
-let libVM: tLibVM;
+let libVM: VMLibrary;
 /**
  * @ignore
  */
@@ -30,25 +31,27 @@ export default class Voicemeeter {
 	 * Initializes the voice meeter dll connection.
 	 * This call is neccessary to use the api. It returns a promise with a VoiceMeeter instance
 	 */
-	public static init(): Promise<Voicemeeter> {
-		return new Promise(async (resolve: (instance: Voicemeeter) => any) => {
+	public static async init(): Promise<Voicemeeter> {
+		const dllPath = await DLLHandler.getDLLPath();
+
+		return new Promise((resolve: (instance: Voicemeeter) => any) => {
 			if (!instance) {
 				instance = new Voicemeeter();
 			}
-			libVM = ffi.Library((await getDLLPath()) + '/VoicemeeterRemote64.dll', {
-				VBVMR_Login: ['long', []],
-				VBVMR_Logout: ['long', []],
-				VBVMR_RunVoicemeeter: ['long', ['long']],
-				VBVMR_IsParametersDirty: ['long', []],
-				VBVMR_GetParameterFloat: ['long', [CharArray, FloatArray]],
-				VBVMR_GetParameterStringA: ['long', [CharArray, CharArray]],
-				VBVMR_SetParameters: ['long', [CharArray]],
-				VBVMR_Output_GetDeviceNumber: ['long', []],
-				VBVMR_Output_GetDeviceDescA: ['long', ['long', LongArray, CharArray, CharArray]],
-				VBVMR_Input_GetDeviceNumber: ['long', []],
-				VBVMR_Input_GetDeviceDescA: ['long', ['long', LongArray, CharArray, CharArray]],
-				VBVMR_GetVoicemeeterType: ['long', [LongArray]],
-				VBVMR_GetVoicemeeterVersion: ['long', [LongArray]]
+			libVM = ffi.Library(`${dllPath}/VoicemeeterRemote64.dll`, {
+				VBVMR_Login: ["long", []],
+				VBVMR_Logout: ["long", []],
+				VBVMR_RunVoicemeeter: ["long", ["long"]],
+				VBVMR_IsParametersDirty: ["long", []],
+				VBVMR_GetParameterFloat: ["long", [CharArray, FloatArray]],
+				VBVMR_GetParameterStringA: ["long", [CharArray, CharArray]],
+				VBVMR_SetParameters: ["long", [CharArray]],
+				VBVMR_Output_GetDeviceNumber: ["long", []],
+				VBVMR_Output_GetDeviceDescA: ["long", ["long", LongArray, CharArray, CharArray]],
+				VBVMR_Input_GetDeviceNumber: ["long", []],
+				VBVMR_Input_GetDeviceDescA: ["long", ["long", LongArray, CharArray, CharArray]],
+				VBVMR_GetVoicemeeterType: ["long", [LongArray]],
+				VBVMR_GetVoicemeeterVersion: ["long", [LongArray]],
 			});
 			instance.isInitialised = true;
 			resolve(instance);
@@ -59,8 +62,8 @@ export default class Voicemeeter {
 	private isConnected = false;
 	private outputDevices: Device[] = [];
 	private inputDevices: Device[] = [];
-	private version: string = '';
-	private type: voiceMeeterTypes;
+	private version = "";
+	private type: VoiceMeeterTypes;
 	private eventPool = [] as Array<() => void>;
 
 	/**
@@ -68,7 +71,7 @@ export default class Voicemeeter {
 	 */
 	public connect = () => {
 		if (!this.isInitialised) {
-			throw new Error('Await the initialisation before connect');
+			throw new Error("Await the initialisation before connect");
 		}
 		if (this.isConnected) {
 			return;
@@ -81,7 +84,7 @@ export default class Voicemeeter {
 			return;
 		}
 		this.isConnected = false;
-		throw new Error('Connection failed');
+		throw new Error("Connection failed");
 	};
 
 	/**
@@ -110,9 +113,9 @@ export default class Voicemeeter {
 
 	/**
 	 * Getter $type
-	 * @return {voiceMeeterTypes}
+	 * @return {VoiceMeeterTypes}
 	 */
-	public get $type(): voiceMeeterTypes {
+	public get $type(): VoiceMeeterTypes {
 		return this.type;
 	}
 
@@ -121,13 +124,13 @@ export default class Voicemeeter {
 	 */
 	public disconnect = () => {
 		if (!this.isConnected) {
-			throw new Error('Not connected ');
+			throw new Error("Not connected ");
 		}
 		if (libVM.VBVMR_Logout() === 0) {
 			this.isConnected = false;
 			return;
 		}
-		throw new Error('Disconnect failed');
+		throw new Error("Disconnect failed");
 	};
 
 	/**
@@ -135,7 +138,7 @@ export default class Voicemeeter {
 	 */
 	public updateDeviceList = () => {
 		if (!this.isConnected) {
-			throw new Error('Not connected ');
+			throw new Error("Not connected ");
 		}
 		this.outputDevices = [];
 		this.inputDevices = [];
@@ -147,9 +150,9 @@ export default class Voicemeeter {
 
 			libVM.VBVMR_Output_GetDeviceDescA(i, typePtr, namePtr, hardwareIdPtr);
 			this.outputDevices.push({
-				name: String.fromCharCode(...namePtr.toArray()).replace(/\u0000+$/g, ''),
-				hardwareId: String.fromCharCode(...hardwareIdPtr.toArray()).replace(/\u0000+$/g, ''),
-				type: typePtr[0]
+				name: String.fromCharCode(...namePtr.toArray()).replace(/\u0000+$/g, ""),
+				hardwareId: String.fromCharCode(...hardwareIdPtr.toArray()).replace(/\u0000+$/g, ""),
+				type: typePtr[0],
 			});
 		}
 
@@ -161,9 +164,9 @@ export default class Voicemeeter {
 
 			libVM.VBVMR_Input_GetDeviceDescA(i, typePtr, namePtr, hardwareIdPtr);
 			this.inputDevices.push({
-				name: String.fromCharCode(...namePtr.toArray()).replace(/\u0000+$/g, ''),
-				hardwareId: String.fromCharCode(...hardwareIdPtr.toArray()).replace(/\u0000+$/g, ''),
-				type: typePtr[0]
+				name: String.fromCharCode(...namePtr.toArray()).replace(/\u0000+$/g, ""),
+				hardwareId: String.fromCharCode(...hardwareIdPtr.toArray()).replace(/\u0000+$/g, ""),
+				type: typePtr[0],
 			});
 		}
 	};
@@ -182,7 +185,7 @@ export default class Voicemeeter {
 	 */
 
 	public getBusParameter = (index: number, property: BusProperties) => {
-		return this.getParameter('Bus', index, property);
+		return this.getParameter("Bus", index, property);
 	};
 
 	/**
@@ -191,7 +194,7 @@ export default class Voicemeeter {
 	 * @param  {StripProperties} property Property which should be get
 	 */
 	public getStripParameter = (index: number, property: StripProperties) => {
-		return this.getParameter('Strip', index, property);
+		return this.getParameter("Strip", index, property);
 	};
 
 	/**
@@ -201,7 +204,7 @@ export default class Voicemeeter {
 	 * @param  {any} value Property value
 	 */
 	public setStripParameter = (index: number, property: StripProperties, value: any) => {
-		this.setParameter('Strip', index, property, value);
+		return this.setParameter("Strip", index, property, value);
 	};
 
 	/**
@@ -211,7 +214,7 @@ export default class Voicemeeter {
 	 * @param  {any} value Property value
 	 */
 	public setBusParameter = (index: number, property: BusProperties, value: any) => {
-		this.setParameter('Bus', index, property, value);
+		return this.setParameter("Bus", index, property, value);
 	};
 
 	/**
@@ -226,7 +229,7 @@ export default class Voicemeeter {
 	 */
 	private checkPropertyChange = () => {
 		if (this.isParametersDirty() === 1) {
-			this.eventPool.forEach(eventListener => {
+			this.eventPool.forEach((eventListener) => {
 				eventListener();
 			});
 		}
@@ -236,20 +239,20 @@ export default class Voicemeeter {
 	 * Gets installed voicemeeter type.
 	 * Means Voicemeeter(normal,banana,potato)
 	 */
-	private getVoicemeeterType = (): voiceMeeterTypes => {
+	private getVoicemeeterType = (): VoiceMeeterTypes => {
 		const typePtr = new LongArray(1);
 		if (libVM.VBVMR_GetVoicemeeterType(typePtr) !== 0) {
-			throw new Error('running failed');
+			throw new Error("running failed");
 		}
 		switch (typePtr[0]) {
 			case 1: // Voicemeeter
-				return 'voicemeeter';
+				return "voicemeeter";
 			case 2: // Voicemeeter Banana
-				return 'voicemeeterBanana';
+				return "voicemeeterBanana";
 			case 3: // Voicemeeter Potato
-				return 'voicemeeterPotato';
+				return "voicemeeterPotato";
 			default:
-				throw new Error('Voicemeeter seems not to be installed');
+				throw new Error("Voicemeeter seems not to be installed");
 		}
 	};
 
@@ -259,7 +262,7 @@ export default class Voicemeeter {
 	private getVoicemeeterVersion = () => {
 		const versionPtr = new LongArray(1) as any;
 		if (libVM.VBVMR_GetVoicemeeterVersion(versionPtr) !== 0) {
-			throw new Error('running failed');
+			throw new Error("running failed");
 		}
 		return versionPtr;
 	};
@@ -270,14 +273,14 @@ export default class Voicemeeter {
 	 * @param  {number} index Number of strip or bus
 	 * @param  {StripProperties|BusProperties} property Property which should be read
 	 */
-	private getParameter = (selector: 'Strip' | 'Bus', index: number, property: StripProperties | BusProperties) => {
+	private getParameter = (selector: "Strip" | "Bus", index: number, property: StripProperties | BusProperties) => {
 		const parameterName = `${selector}[${index}].${property}`;
 		if (!this.isConnected) {
-			throw new Error('Not correct connected ');
+			throw new Error("Not correct connected ");
 		}
-		let hardwareIdPtr = Buffer.alloc(parameterName.length + 1);
+		const hardwareIdPtr = Buffer.alloc(parameterName.length + 1);
 		hardwareIdPtr.write(parameterName);
-		let namePtr = new FloatArray(1);
+		const namePtr = new FloatArray(1);
 		libVM.VBVMR_GetParameterFloat(hardwareIdPtr, namePtr);
 		return namePtr[0];
 	};
@@ -289,14 +292,20 @@ export default class Voicemeeter {
 	 * @param  {StripProperties|BusProperties} property Propertyname which should be changed
 	 * @param  {any} value Property value
 	 */
-	private setParameter = (selector: 'Strip' | 'Bus', index: number, property: StripProperties | BusProperties, value: any) => {
+	private setParameter = (
+		selector: "Strip" | "Bus",
+		index: number,
+		property: StripProperties | BusProperties,
+		value: any
+	): Promise<any> => {
 		if (!this.isConnected) {
-			throw new Error('Not connected ');
+			throw new Error("Not connected ");
 		}
-		let scriptString = `${selector}[${index}].${property}=${value};`;
+		const scriptString = `${selector}[${index}].${property}=${value};`;
 		const script = Buffer.alloc(scriptString.length + 1);
 		script.fill(0);
 		script.write(scriptString);
 		libVM.VBVMR_SetParameters(script);
+		return new Promise((resolve) => setTimeout(resolve, 200));
 	};
 }

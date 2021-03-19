@@ -1,0 +1,27 @@
+name: "🧪 Check Pull Request"
+on:
+    pull_request:
+        branches: [main]
+
+jobs:
+    check-coding:
+        name: "Check coding"
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: technote-space/auto-cancel-redundant-workflow@v1
+            - uses: actions/setup-node@v2
+              with:
+                  node-version: 15
+
+            - name: 🏗 Install windows-build-tools
+              run: npm install --global --production windows-build-tools
+
+            - name: 🏗 Install dependencies
+              run: npm install
+
+            - name: ✒ Check linting / formatting
+              run: npm run lint --if-present
+
+            - name: "⚙ Check app building"
+              run: npm run build

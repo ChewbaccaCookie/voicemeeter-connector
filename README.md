@@ -4,8 +4,10 @@ Voicemeeter Connector is a Node.js (Typescript) connector to use the official Vo
 
 ## Installation
 
-**Warning:** Make sure that you use Node in the Version 8 or 10.
-When you try to install the dependencies on later versions the installation step will fail.
+| Package Version | Node Version |
+| --------------- | ------------ |
+| <= 0.62         | 8,10         |
+| >= 1.0          | 15           |
 
 Execute the following command in a power shell window (Administrator).
 
@@ -19,43 +21,29 @@ Now you can use the following to add the connector to your project.
 
 ## Use it in your project
 
-### Javascript
-
-```javascript
-const VoiceMeeter = require('voicemeeter-connector');
-
-VoiceMeeter.default.init().then(vm => {
-	// Connect to your Voicemeeter client
-	vm.connect();
-
-	// Sets gain of strip 0 to -10db
-	vm.setStripParameter(0, VoiceMeeter.StripProperties.Gain, -10);
-
-	// Get Gain of strip 0
-	let gain = vm.getStripParameter(0, VoiceMeeter.StripProperties.Gain);
-
-	//Disconnect voicemeeter client
-	setTimeout(vm.disconnect, 100);
-});
-```
-
-### Typescript
+### Basic Example
 
 ```typescript
-import VoiceMeeter, { StripProperties } from 'voicemeeter-connector';
+import { Voicemeeter, StripProperties } from "../src/index";
 
-VoiceMeeter.init().then(vm => {
+Voicemeeter.init().then(async (vm) => {
 	// Connect to your voicemeeter client
 	vm.connect();
 
 	// Sets gain of strip 0 to -10db
-	vm.setStripParameter(0, StripProperties.Gain, -10);
+	await vm.setStripParameter(0, StripProperties.Gain, -10);
 
-	// Get Gain of strip 0
-	let gain = vm.getStripParameter(0, VoiceMeeter.StripProperties.Gain);
+	// Get gain at -10db
+	console.log(vm.getStripParameter(0, StripProperties.Gain));
 
-	//Disconnect voicemeeter client
-	setTimeout(vm.disconnect, 100);
+	// Set gain to random number
+	await vm.setStripParameter(0, StripProperties.Gain, -Math.round(Math.random() * 40) + 10);
+
+	// Get random gain of strip 0
+	console.log(vm.getStripParameter(0, StripProperties.Gain));
+
+	// Disconnect voicemeeter client
+	setTimeout(vm.disconnect, 500);
 });
 ```
 
