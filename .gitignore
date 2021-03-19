@@ -4,7 +4,7 @@ dist
 test
 src/**.js
 .idea/*
-
+docs
 coverage
 .nyc_output
 *.log

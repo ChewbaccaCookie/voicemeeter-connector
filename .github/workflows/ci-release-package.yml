@@ -23,7 +23,7 @@ jobs:
             - name: ✒ Check linting / formatting
               run: npm run lint --if-present
 
-            - name: "⚙ Check app building"
+            - name: "⚙ Build package"
               run: npm run build
 
             - id: publish
@@ -44,3 +44,12 @@ jobs:
                   body: ${{ steps.publish.outputs.version }}
                   draft: false
                   prerelease: false
+
+            - name: "📃 Generate docu"
+              run: npm run generate-docu
+
+            - name: "📕 Push to GitHub Pages"
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./docs
