@@ -1,0 +1,46 @@
+name: "🚀 Release package"
+
+on:
+    push:
+        branches: [main]
+
+jobs:
+    publish:
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: technote-space/auto-cancel-redundant-workflow@v1
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: 15
+
+            - name: 🏗 Install windows-build-tools
+              run: npm install --global --production windows-build-tools
+
+            - name: 🏗 Install dependencies
+              run: npm install
+
+            - name: ✒ Check linting / formatting
+              run: npm run lint --if-present
+
+            - name: "⚙ Check app building"
+              run: npm run build
+
+            - id: publish
+              name: "🚀 Publish to NPM"
+              uses: JS-DevTools/npm-publish@v1
+              with:
+                  token: ${{ secrets.NPM_TOKEN }}
+
+            - name: Create Git Release
+              if: steps.publish.outputs.type != 'none'
+              id: create_release
+              uses: actions/create-release@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  tag_name: ${{ steps.publish.outputs.version }}
+                  release_name: Release ${{ steps.publish.outputs.version }}
+                  body: ${{ steps.publish.outputs.version }}
+                  draft: false
+                  prerelease: false
