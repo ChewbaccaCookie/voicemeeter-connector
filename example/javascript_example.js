@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { Voicemeeter, StripProperties } = require("../dist/voicemeeter-connector.umd");
+const { Voicemeeter, StripProperties } = require("voicemeeter-connector");
 
 Voicemeeter.init().then(async (vm) => {
 	// Connect to your voicemeeter client
@@ -19,5 +19,8 @@ Voicemeeter.init().then(async (vm) => {
 	console.log(vm.getStripParameter(0, StripProperties.Gain));
 
 	// Disconnect voicemeeter client
-	vm.disconnect();
+	setTimeout(() => {
+		vm.disconnect();
+		process.exit(0);
+	}, 5000);
 });

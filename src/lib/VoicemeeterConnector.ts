@@ -4,7 +4,6 @@ import refArray from "ref-array-napi";
 import DLLHandler from "./DLLHandler";
 import { Device, VMLibrary, VoiceMeeterTypes } from "../types/VoicemeeterTypes";
 import { BusProperties, StripProperties } from "./VoicemeeterConsts";
-
 /**
  * @ignore
  */
@@ -126,11 +125,15 @@ export default class Voicemeeter {
 		if (!this.isConnected) {
 			throw new Error("Not connected ");
 		}
-		if (libVM.VBVMR_Logout() === 0) {
-			this.isConnected = false;
-			return;
+		try {
+			if (libVM.VBVMR_Logout() === 0) {
+				this.isConnected = false;
+				return;
+			}
+			throw new Error("Disconnect failed");
+		} catch {
+			throw new Error("Disconnect failed");
 		}
-		throw new Error("Disconnect failed");
 	};
 
 	/**

@@ -1,14 +1,12 @@
 {
 	"name": "voicemeeter-connector",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "A Connector to use the Voicemeeter API",
 	"repository": "https://github.com/ChewbaccaCookie/voicemeeter-connector",
 	"license": "MIT",
 	"source": "src/index.ts",
-	"main": "dist/voicemeeter-connector.js",
-	"exports": "./dist/voicemeeter-connector.modern.js",
-	"module": "dist/voicemeeter-connector.module.js",
-	"unpkg": "dist/voicemeeter-connector.umd.js",
+	"main": "dist/index.js",
+	"module": "dist/index.module.js",
 	"scripts": {
 		"build": "microbundle",
 		"dev": "microbundle watch",
