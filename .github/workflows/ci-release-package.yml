@@ -13,11 +13,11 @@ jobs:
             - uses: actions/setup-node@v1
               with:
                   node-version: 14
-                  
+
             - name: Install Python
               uses: actions/setup-python@v2
               with:
-                python-version: '2.7'
+                  python-version: "2.7"
 
             - name: 🏗 Install windows-build-tools
               run: npm install --global windows-build-tools@4.0.0
@@ -30,6 +30,15 @@ jobs:
 
             - name: "⚙ Build package"
               run: npm run build
+
+            - name: "📃 Generate docu"
+              run: npm run generate-docu
+
+            - name: "📕 Push to GitHub Pages"
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./docs
 
             - id: publish
               name: "🚀 Publish to NPM"
@@ -49,12 +58,3 @@ jobs:
                   body: ${{ steps.publish.outputs.version }}
                   draft: false
                   prerelease: false
-
-            - name: "📃 Generate docu"
-              run: npm run generate-docu
-
-            - name: "📕 Push to GitHub Pages"
-              uses: peaceiris/actions-gh-pages@v3
-              with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
-                  publish_dir: ./docs
