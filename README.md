@@ -7,7 +7,7 @@ Voicemeeter Connector is a Node.js (Typescript) connector to use the official Vo
 | Package Version | Node Version |
 | --------------- | ------------ |
 | <= 0.62         | 8,10         |
-| >= 1.0          | 15           |
+| >= 1.0          | 10 - 15      |
 
 Execute the following command in a power shell window (Administrator).
 
