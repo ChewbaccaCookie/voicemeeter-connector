@@ -12,7 +12,7 @@ jobs:
             - uses: technote-space/auto-cancel-redundant-workflow@v1
             - uses: actions/setup-node@v1
               with:
-                  node-version: 15
+                  node-version: 14
                   
             - name: Install Python
               uses: actions/setup-python@v2
