@@ -19,8 +19,6 @@ jobs:
               with:
                   python-version: "2.7"
 
-            - uses: crazy-max/ghaction-chocolatey@v1
-
             - name: 🏗 Install windows-build-tools
               run: |
                   choco install python visualcpp-build-tools -y
