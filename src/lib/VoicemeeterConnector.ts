@@ -285,7 +285,7 @@ export default class Voicemeeter {
 		hardwareIdPtr.write(parameterName);
 		let namePtr = null;
 		if (["Label", "FadeTo", "FadeBy", "AppGain", "AppMute", "device.name"].indexOf(property) > -1) {
-			namePtr = new CharArray(256);
+			namePtr = new CharArray(512);
 			libVM.VBVMR_GetParameterStringA(hardwareIdPtr, namePtr);
 			return String.fromCharCode.apply(null, namePtr).split('').filter(function (e: string) { return e != '\0'}).join('');
 		} else {
