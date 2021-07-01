@@ -20,7 +20,7 @@ jobs:
                   python-version: "2.7"
 
             - name: 🏗 Install windows-build-tools
-              run: npm install --global windows-build-tools@4.0.0
+              run: npm install --global windows-build-tools
 
             - name: 🏗 Install dependencies
               run: npm install
