@@ -287,12 +287,17 @@ export default class Voicemeeter {
 		if (["Label", "FadeTo", "FadeBy", "AppGain", "AppMute", "device.name"].indexOf(property) > -1) {
 			namePtr = new CharArray(512);
 			libVM.VBVMR_GetParameterStringA(hardwareIdPtr, namePtr);
-			return String.fromCharCode.apply(null, namePtr).split('').filter(function (e: string) { return e != '\0'}).join('');
-		} else {
-			namePtr = new FloatArray(1);
-			libVM.VBVMR_GetParameterFloat(hardwareIdPtr, namePtr);
-			return namePtr[0];
+			return String.fromCharCode
+				.apply(null, namePtr)
+				.split("")
+				.filter((e: string) => {
+					return e !== "\0";
+				})
+				.join("");
 		}
+		namePtr = new FloatArray(1);
+		libVM.VBVMR_GetParameterFloat(hardwareIdPtr, namePtr);
+		return namePtr[0];
 	};
 
 	/**
