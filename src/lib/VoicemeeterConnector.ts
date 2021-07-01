@@ -283,7 +283,19 @@ export default class Voicemeeter {
 		}
 		const hardwareIdPtr = Buffer.alloc(parameterName.length + 1);
 		hardwareIdPtr.write(parameterName);
-		const namePtr = new FloatArray(1);
+		let namePtr = null;
+		if (["Label", "FadeTo", "FadeBy", "AppGain", "AppMute", "device.name"].indexOf(property) > -1) {
+			namePtr = new CharArray(512);
+			libVM.VBVMR_GetParameterStringA(hardwareIdPtr, namePtr);
+			return String.fromCharCode
+				.apply(null, namePtr)
+				.split("")
+				.filter((e: string) => {
+					return e !== "\0";
+				})
+				.join("");
+		}
+		namePtr = new FloatArray(1);
 		libVM.VBVMR_GetParameterFloat(hardwareIdPtr, namePtr);
 		return namePtr[0];
 	};
