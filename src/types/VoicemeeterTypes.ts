@@ -21,3 +21,19 @@ export interface Device {
 	hardwareId: string;
 	type: number;
 }
+
+/**
+ * Options for connecting to VoiceMeeter.
+ *
+ * @export
+ * @interface ConnectOptions
+ */
+export interface ConnectOptions {
+	/**
+	 * The amount of milliseconds between each check for changed parameters.
+	 *
+	 * @type {number}
+	 * @memberof ConnectOptions
+	 */
+	propertyChangedInterval?: number;
+}

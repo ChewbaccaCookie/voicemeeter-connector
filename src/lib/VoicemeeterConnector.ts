@@ -2,7 +2,7 @@
 import ffi from "ffi-napi";
 import refArray from "ref-array-napi";
 import DLLHandler from "./DLLHandler";
-import { Device, VMLibrary, VoiceMeeterTypes } from "../types/VoicemeeterTypes";
+import { Device, VMLibrary, VoiceMeeterTypes, ConnectOptions } from "../types/VoicemeeterTypes";
 import { BusProperties, StripProperties } from "./VoicemeeterConsts";
 /**
  * @ignore
@@ -64,11 +64,13 @@ export default class Voicemeeter {
 	private version = "";
 	private type: VoiceMeeterTypes;
 	private eventPool = [] as Array<() => void>;
+	private propertyChangeIntervalLength?: number;
+	private propertyChangeInterval?: NodeJS.Timer;
 
 	/**
 	 * Starts a connection to VoiceMeeter
 	 */
-	public connect = () => {
+	public connect = (options?: ConnectOptions) => {
 		if (!this.isInitialised) {
 			throw new Error("Await the initialisation before connect");
 		}
@@ -79,7 +81,7 @@ export default class Voicemeeter {
 			this.isConnected = true;
 			this.type = this.getVoicemeeterType();
 			this.version = this.getVoicemeeterVersion();
-			setInterval(this.checkPropertyChange, 10);
+			this.propertyChangeIntervalLength = options?.propertyChangedInterval;
 			return;
 		}
 		this.isConnected = false;
@@ -127,6 +129,8 @@ export default class Voicemeeter {
 		}
 		try {
 			if (libVM.VBVMR_Logout() === 0) {
+				if (typeof this.propertyChangeInterval !== "undefined") clearInterval(this.propertyChangeInterval);
+				this.eventPool = [];
 				this.isConnected = false;
 				return;
 			}
@@ -224,6 +228,10 @@ export default class Voicemeeter {
 	 * @param  {()=>any} fn Function which should be called if something changes
 	 */
 	public attachChangeEvent = (fn: () => any) => {
+		if (typeof this.propertyChangeInterval === "undefined") {
+			this.propertyChangeInterval = setInterval(this.checkPropertyChange, this.propertyChangeIntervalLength ?? 10);
+		}
+
 		this.eventPool.push(fn);
 	};
 
