@@ -228,6 +228,17 @@ export default class Voicemeeter {
 	};
 
 	/**
+	 * Sets an option.
+	 * @param {string} option Option to set
+	 */
+	public setOption = (option: string) => {
+		const script = Buffer.alloc(option.length + 1);
+		script.fill(0).write(option);
+		libVM.VBVMR_SetParameters(script);
+		return new Promise((resolve) => setTimeout(resolve, 200));
+	};
+
+	/**
 	 * Checks whether properties has been changed and calls all event listeners
 	 */
 	private checkPropertyChange = () => {
@@ -317,10 +328,6 @@ export default class Voicemeeter {
 			throw new Error("Not connected ");
 		}
 		const scriptString = `${selector}[${index}].${property}=${value};`;
-		const script = Buffer.alloc(scriptString.length + 1);
-		script.fill(0);
-		script.write(scriptString);
-		libVM.VBVMR_SetParameters(script);
-		return new Promise((resolve) => setTimeout(resolve, 200));
+		return this.setOption(scriptString);
 	};
 }
