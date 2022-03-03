@@ -14,10 +14,10 @@ jobs:
               with:
                   node-version: 16
 
-            - name: 🏗 Install windows-build-tools
+            - name: Install native dependencies
               run: |
-                  choco install python3 visualstudio2019buildtools -y
-                  npm config set msvs_version 2019
+                  choco install python3 -y
+                  npm config set msvs_version 2022
 
             - name: 🏗 Install dependencies
               run: npm install
