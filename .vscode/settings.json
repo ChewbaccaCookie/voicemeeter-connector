@@ -12,7 +12,6 @@
 		".prettierrc": true,
 		"dist": true,
 		".editorconfig": true,
-		".eslintrc": true,
 		"voicemeeter-connector.code-workspace": true,
 		".vscode": true,
 		"node_modules": true,
