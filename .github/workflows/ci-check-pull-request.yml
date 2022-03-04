@@ -12,17 +12,12 @@ jobs:
             - uses: technote-space/auto-cancel-redundant-workflow@v1
             - uses: actions/setup-node@v2
               with:
-                  node-version: 14
+                  node-version: 16
 
-            - name: Install Python
-              uses: actions/setup-python@v2
-              with:
-                  python-version: "2.7"
-
-            - name: 🏗 Install windows-build-tools
+            - name: Install native dependencies
               run: |
-                  choco install python visualcpp-build-tools -y
-                  npm config set msvs_version 2019
+                  choco install python3 -y
+                  npm config set msvs_version 2022
 
             - name: 🏗 Install dependencies
               run: npm install
