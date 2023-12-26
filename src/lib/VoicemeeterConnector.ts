@@ -64,6 +64,7 @@ export default class Voicemeeter {
 	private version = "";
 	private type: VoiceMeeterTypes;
 	private eventPool = [] as Array<() => void>;
+	private stringParameters = ["Label", "FadeTo", "FadeBy", "AppGain", "AppMute", "name", "ip"];
 
 	/**
 	 * Starts a connection to VoiceMeeter
@@ -226,7 +227,33 @@ export default class Voicemeeter {
 	public attachChangeEvent = (fn: () => any) => {
 		this.eventPool.push(fn);
 	};
-
+	/**
+	 * @param parameterName Name of the parameter that should be get
+	 * @returns {any} Parameter value
+	 */
+	public getOption = (parameterName: string) => {
+		if (!this.isConnected) {
+			throw new Error("Not correct connected ");
+		}
+		const hardwareIdPtr = Buffer.alloc(parameterName.length + 1);
+		hardwareIdPtr.write(parameterName);
+		let namePtr = null;
+		// Some parameters return string values and require some post-processing, this checks for those parameters
+		if (this.stringParameters.some((str) => parameterName.includes(str))) {
+			namePtr = new CharArray(512);
+			libVM.VBVMR_GetParameterStringA(hardwareIdPtr, namePtr);
+			return String.fromCharCode
+				.apply(null, namePtr)
+				.split("")
+				.filter((e: string) => {
+					return e !== "\0";
+				})
+				.join("");
+		}
+		namePtr = new FloatArray(1);
+		libVM.VBVMR_GetParameterFloat(hardwareIdPtr, namePtr);
+		return namePtr[0];
+	};
 	/**
 	 * Sets an option.
 	 * @param {string} option Option to set
@@ -289,26 +316,7 @@ export default class Voicemeeter {
 	 */
 	private getParameter = (selector: "Strip" | "Bus", index: number, property: StripProperties | BusProperties) => {
 		const parameterName = `${selector}[${index}].${property}`;
-		if (!this.isConnected) {
-			throw new Error("Not correct connected ");
-		}
-		const hardwareIdPtr = Buffer.alloc(parameterName.length + 1);
-		hardwareIdPtr.write(parameterName);
-		let namePtr = null;
-		if (["Label", "FadeTo", "FadeBy", "AppGain", "AppMute", "device.name"].indexOf(property) > -1) {
-			namePtr = new CharArray(512);
-			libVM.VBVMR_GetParameterStringA(hardwareIdPtr, namePtr);
-			return String.fromCharCode
-				.apply(null, namePtr)
-				.split("")
-				.filter((e: string) => {
-					return e !== "\0";
-				})
-				.join("");
-		}
-		namePtr = new FloatArray(1);
-		libVM.VBVMR_GetParameterFloat(hardwareIdPtr, namePtr);
-		return namePtr[0];
+		return this.getOption(parameterName);
 	};
 
 	/**

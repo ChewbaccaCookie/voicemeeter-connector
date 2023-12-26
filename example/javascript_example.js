@@ -21,6 +21,9 @@ Voicemeeter.init().then(async (vm) => {
 	// Disable VBAN
 	await vm.setOption('vban.Enable=0;');
 
+	// Get vban state
+	console.log(vm.getOption('vban.Enable'));
+
 	// Disconnect voicemeeter client
 	setTimeout(() => {
 		vm.disconnect();
