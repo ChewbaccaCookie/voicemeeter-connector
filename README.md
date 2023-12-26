@@ -7,7 +7,7 @@ Voicemeeter Connector is a Node.js (Typescript) connector to use the official Vo
 | Package Version | Node Version |
 | --------------- | ------------ |
 | <= 0.62         | 8,10         |
-| >= 1.0          | 10 - 15      |
+| >= 1.0          | > 10      |
 
 Execute the following command in a power shell window (Administrator).
 
@@ -55,4 +55,4 @@ Voicemeeter.init().then(async (vm) => {
 
 ## Documetation
 
-See Documentation on https://chewbaccacookie.github.io/voicemeeter-connector/classes/voicemeeter.html
+See Documentation on https://chewbaccacookie.github.io/voicemeeter-connector/classes/Voicemeeter.html
