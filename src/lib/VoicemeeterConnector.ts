@@ -42,6 +42,7 @@ export default class Voicemeeter {
 				VBVMR_Logout: ["long", []],
 				VBVMR_RunVoicemeeter: ["long", ["long"]],
 				VBVMR_IsParametersDirty: ["long", []],
+				VBVMR_GetLevel: ["long", ["long", "long", FloatArray]],
 				VBVMR_GetParameterFloat: ["long", [CharArray, FloatArray]],
 				VBVMR_GetParameterStringA: ["long", [CharArray, CharArray]],
 				VBVMR_SetParameters: ["long", [CharArray]],
@@ -337,5 +338,17 @@ export default class Voicemeeter {
 		}
 		const scriptString = `${selector}[${index}].${property}=${value};`;
 		return this.setOption(scriptString);
+	};
+	/**
+	 * Gets realtime audio level see the VoicemeeterRemote API: [VoicemeeterRemote.h GetLevel](https://github.com/mirror/equalizerapo/blob/7aece1b788fce5aa11873f3842a0d01f7c78454b/VoicemeeterClient/VoicemeeterRemote.h#L284),
+	 * for more details about the parameters
+	 * @param {0|1|2|3} type 0 = pre fader input levels. 1 = post fader input levels. 2= post Mute input levels. 3= output levels
+	 * @param channel audio channel zero based index
+	 * @returns {float} Current audio level
+	 */
+	public getLevel = (type: 0 | 1 | 2 | 3, channel: number) => {
+		const levelPtr = new FloatArray(1);
+		libVM.VBVMR_GetLevel(type, channel, levelPtr);
+		return levelPtr[0];
 	};
 }

@@ -23,6 +23,10 @@ Voicemeeter.init().then(async (vm) => {
 	// Get vban state
 	console.log(vm.getOption('vban.Enable'));
 
+	// Gets current audio levels of strip 0
+    console.log(`Left: ${vm.getLevel(0, 0)} Right: ${vm.getLevel(0, 1)}`);
+
+
 	vm.attachChangeEvent(() => {
 		console.log("Something changed!");
 	});
