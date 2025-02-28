@@ -1,21 +1,9 @@
 /* eslint-disable no-control-regex */
-import ffi from "ffi-napi";
-import refArray from "ref-array-napi";
+import koffi from "koffi";
 import DLLHandler from "./DLLHandler";
 import { Device, VMLibrary, VoiceMeeterTypes } from "../types/VoicemeeterTypes";
 import { BusProperties, StripProperties } from "./VoicemeeterConsts";
-/**
- * @ignore
- */
-const CharArray = refArray("char");
-/**
- * @ignore
- */
-const LongArray = refArray("long");
-/**
- * @ignore
- */
-const FloatArray = refArray("float");
+
 /**
  * @ignore
  */
@@ -37,22 +25,28 @@ export default class Voicemeeter {
 			if (!instance) {
 				instance = new Voicemeeter();
 			}
-			libVM = ffi.Library(`${dllPath}/VoicemeeterRemote64.dll`, {
-				VBVMR_Login: ["long", []],
-				VBVMR_Logout: ["long", []],
-				VBVMR_RunVoicemeeter: ["long", ["long"]],
-				VBVMR_IsParametersDirty: ["long", []],
-				VBVMR_GetLevel: ["long", ["long", "long", FloatArray]],
-				VBVMR_GetParameterFloat: ["long", [CharArray, FloatArray]],
-				VBVMR_GetParameterStringA: ["long", [CharArray, CharArray]],
-				VBVMR_SetParameters: ["long", [CharArray]],
-				VBVMR_Output_GetDeviceNumber: ["long", []],
-				VBVMR_Output_GetDeviceDescA: ["long", ["long", LongArray, CharArray, CharArray]],
-				VBVMR_Input_GetDeviceNumber: ["long", []],
-				VBVMR_Input_GetDeviceDescA: ["long", ["long", LongArray, CharArray, CharArray]],
-				VBVMR_GetVoicemeeterType: ["long", [LongArray]],
-				VBVMR_GetVoicemeeterVersion: ["long", [LongArray]],
-			});
+			const lib = koffi.load(`${dllPath}/VoicemeeterRemote64.dll`);
+			libVM = {
+				VBVMR_Login: lib.func("long __stdcall VBVMR_Login(void)"),
+				VBVMR_Logout: lib.func("long __stdcall VBVMR_Logout(void)"),
+				VBVMR_RunVoicemeeter: lib.func("long __stdcall VBVMR_RunVoicemeeter(long mode)"),
+				VBVMR_IsParametersDirty: lib.func("long __stdcall VBVMR_IsParametersDirty(void)"),
+				VBVMR_GetLevel: lib.func("long __stdcall VBVMR_GetLevel(long type, long channel, _Out_ float* value)"),
+				VBVMR_GetParameterFloat: lib.func("long __stdcall VBVMR_GetParameterFloat(const char* param, _Out_ float* value)"),
+				VBVMR_GetParameterStringA: lib.func("long __stdcall VBVMR_GetParameterStringA(const char* param, _Out_ char* value)"),
+				VBVMR_SetParameters: lib.func("long __stdcall VBVMR_SetParameters(const char* param)"),
+				VBVMR_Output_GetDeviceNumber: lib.func("long __stdcall VBVMR_Output_GetDeviceNumber(void)"),
+				VBVMR_Output_GetDeviceDescA: lib.func(
+					"long __stdcall VBVMR_Output_GetDeviceDescA(long index, _Out_ long* type, _Out_ char* name, _Out_ char* hardwareId)"
+				),
+				VBVMR_Input_GetDeviceNumber: lib.func("long __stdcall VBVMR_Input_GetDeviceNumber(void)"),
+				VBVMR_Input_GetDeviceDescA: lib.func(
+					"long __stdcall VBVMR_Input_GetDeviceDescA(long index, long* type, char* name, char* hardwareId)"
+				),
+				VBVMR_GetVoicemeeterType: lib.func("long __stdcall VBVMR_GetVoicemeeterType(_Out_ long* type)"),
+				VBVMR_GetVoicemeeterVersion: lib.func("long __stdcall VBVMR_GetVoicemeeterVersion(_Out_ long* version)"),
+			};
+
 			instance.isInitialised = true;
 			resolve(instance);
 		});
@@ -149,28 +143,28 @@ export default class Voicemeeter {
 		this.inputDevices = [];
 		const outputDeviceNumber = libVM.VBVMR_Output_GetDeviceNumber();
 		for (let i = 0; i < outputDeviceNumber; i++) {
-			const hardwareIdPtr = new CharArray(256) as any;
-			const namePtr = new CharArray(256) as any;
-			const typePtr = new LongArray(1) as any;
+			const hardwareIdPtr = Buffer.alloc(256);
+			const namePtr = Buffer.alloc(256);
+			const typePtr = [0];
 
 			libVM.VBVMR_Output_GetDeviceDescA(i, typePtr, namePtr, hardwareIdPtr);
 			this.outputDevices.push({
-				name: String.fromCharCode(...namePtr.toArray()).replace(/\u0000+$/g, ""),
-				hardwareId: String.fromCharCode(...hardwareIdPtr.toArray()).replace(/\u0000+$/g, ""),
+				name: namePtr.toString().replace(/\u0000+$/g, ""),
+				hardwareId: hardwareIdPtr.toString().replace(/\u0000+$/g, ""),
 				type: typePtr[0],
 			});
 		}
 
 		const inputDeviceNumber = libVM.VBVMR_Input_GetDeviceNumber();
 		for (let i = 0; i < inputDeviceNumber; i++) {
-			const hardwareIdPtr = new CharArray(256) as any;
-			const namePtr = new CharArray(256) as any;
-			const typePtr = new LongArray(1) as any;
+			const hardwareIdPtr = Buffer.alloc(256);
+			const namePtr = Buffer.alloc(256);
+			const typePtr = [0];
 
 			libVM.VBVMR_Input_GetDeviceDescA(i, typePtr, namePtr, hardwareIdPtr);
 			this.inputDevices.push({
-				name: String.fromCharCode(...namePtr.toArray()).replace(/\u0000+$/g, ""),
-				hardwareId: String.fromCharCode(...hardwareIdPtr.toArray()).replace(/\u0000+$/g, ""),
+				name: namePtr.toString().replace(/\u0000+$/g, ""),
+				hardwareId: hardwareIdPtr.toString().replace(/\u0000+$/g, ""),
 				type: typePtr[0],
 			});
 		}
@@ -236,24 +230,21 @@ export default class Voicemeeter {
 		if (!this.isConnected) {
 			throw new Error("Not correct connected ");
 		}
-		const hardwareIdPtr = Buffer.alloc(parameterName.length + 1);
-		hardwareIdPtr.write(parameterName);
-		let namePtr = null;
 		// Some parameters return string values and require some post-processing, this checks for those parameters
 		if (this.stringParameters.some((str) => parameterName.includes(str))) {
-			namePtr = new CharArray(512);
-			libVM.VBVMR_GetParameterStringA(hardwareIdPtr, namePtr);
+			const strPtr = Buffer.alloc(512);
+			libVM.VBVMR_GetParameterStringA(parameterName, strPtr);
 			return String.fromCharCode
-				.apply(null, namePtr)
+				.apply(null, strPtr)
 				.split("")
 				.filter((e: string) => {
 					return e !== "\0";
 				})
 				.join("");
 		}
-		namePtr = new FloatArray(1);
-		libVM.VBVMR_GetParameterFloat(hardwareIdPtr, namePtr);
-		return namePtr[0];
+		const valuePtr = [0];
+		libVM.VBVMR_GetParameterFloat(parameterName, valuePtr);
+		return valuePtr[0];
 	};
 	/**
 	 * Sets an option.
@@ -282,10 +273,11 @@ export default class Voicemeeter {
 	 * Means Voicemeeter(normal,banana,potato)
 	 */
 	private getVoicemeeterType = (): VoiceMeeterTypes => {
-		const typePtr = new LongArray(1);
+		const typePtr = [0];
 		if (libVM.VBVMR_GetVoicemeeterType(typePtr) !== 0) {
 			throw new Error("running failed");
 		}
+
 		switch (typePtr[0]) {
 			case 1: // Voicemeeter
 				return "voicemeeter";
@@ -302,11 +294,17 @@ export default class Voicemeeter {
 	 * Returns the installed voicemeeter version
 	 */
 	private getVoicemeeterVersion = () => {
-		const versionPtr = new LongArray(1) as any;
+		const versionPtr = [0];
 		if (libVM.VBVMR_GetVoicemeeterVersion(versionPtr) !== 0) {
 			throw new Error("running failed");
 		}
-		return versionPtr;
+		// For info on this see: https://github.com/mirror/equalizerapo/blob/53d885f7f1a097b457e17a5206b7d60f647877a8/VoicemeeterClient/VoicemeeterRemote.h#L122-L135
+		const version =
+			`${(versionPtr[0] & 0xff000000) >> 24}` +
+			`.${(versionPtr[0] & 0x00ff0000) >> 16}` +
+			`.${(versionPtr[0] & 0x0000ff00) >> 8}` +
+			`.${versionPtr[0] & 0x000000ff}`;
+		return version;
 	};
 
 	/**
@@ -347,7 +345,7 @@ export default class Voicemeeter {
 	 * @returns {float} Current audio level
 	 */
 	public getLevel = (type: 0 | 1 | 2 | 3, channel: number) => {
-		const levelPtr = new FloatArray(1);
+		const levelPtr = [0];
 		libVM.VBVMR_GetLevel(type, channel, levelPtr);
 		return levelPtr[0];
 	};

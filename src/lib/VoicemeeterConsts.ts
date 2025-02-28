@@ -43,5 +43,5 @@ export enum BusProperties {
 	RepeatMode = "mode.Repeat",
 	CompositeMode = "mode.Composite",
 	FadeTo = "FadeTo",
-	Label = "Label"
+	Label = "Label",
 }
