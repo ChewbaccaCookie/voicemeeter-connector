@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { Voicemeeter, StripProperties } from "voicemeeter-connector";
+import { Voicemeeter, StripProperties, MacroButtonModes } from "voicemeeter-connector";
 
 Voicemeeter.init().then(async (vm) => {
 	// Connect to your voicemeeter client
@@ -24,8 +24,13 @@ Voicemeeter.init().then(async (vm) => {
 	console.log(vm.getOption('vban.Enable'));
 
 	// Gets current audio levels of strip 0
-    console.log(`Left: ${vm.getLevel(0, 0)} Right: ${vm.getLevel(0, 1)}`);
+  console.log(`Left: ${vm.getLevel(0, 0)} Right: ${vm.getLevel(0, 1)}`);
 
+	// set MacroButton state
+	console.log(vm.setMacroButtonStatus(0, 1, MacroButtonModes.DEFAULT))
+
+	// get MacroButton state
+	console.log(vm.getMacroButtonStatus(0, MacroButtonModes.DEFAULT))
 
 	vm.attachChangeEvent(() => {
 		console.log("Something changed!");

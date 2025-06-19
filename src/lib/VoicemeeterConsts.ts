@@ -45,3 +45,10 @@ export enum BusProperties {
 	FadeTo = "FadeTo",
 	Label = "Label",
 }
+
+export enum MacroButtonModes {
+	DEFAULT = 0x00000000,
+	STATEONLY = 0x00000002,
+	TRIGGER = 0x00000003,
+	COLOR = 0x00000004,
+}

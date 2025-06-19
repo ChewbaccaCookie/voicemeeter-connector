@@ -15,6 +15,9 @@ export interface VMLibrary {
 	VBVMR_Input_GetDeviceDescA: any;
 	VBVMR_GetVoicemeeterType: any;
 	VBVMR_GetVoicemeeterVersion: (versionPtr: any) => number;
+	VBVMR_MacroButton_IsDirty: any;
+	VBVMR_MacroButton_GetStatus: any;
+	VBVMR_MacroButton_SetStatus: any;
 }
 
 export interface Device {
