@@ -16,7 +16,5 @@
         "sourceMap": true,
         "strictNullChecks": true,
         "target": "es2022"
-    },
-    "exclude": [],
-    "include": ["lib/src", "examples/**/*"]
+    }
 }

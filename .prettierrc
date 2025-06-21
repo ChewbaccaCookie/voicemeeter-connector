@@ -1,9 +1,1 @@
-{
-	"useTabs": true,
-	"tabWidth": 4,
-	"singleQuote": false,
-	"printWidth": 140,
-	"endOfLine": "crlf",
-	"jsxSingleQuote": false,
-	"semi": true
-}
+"@chewbaccacookie/prettier-config"

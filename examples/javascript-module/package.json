@@ -1,0 +1,13 @@
+{
+	"name": "javascript-module-example",
+	"private": true,
+	"type": "module",
+	"description": "Examples how to use the Voicemeeter Connector library in a JavaScript module project.",
+	"main": "example.js",
+	"scripts": {
+		"start": "node example.js"
+	},
+	"dependencies": {
+		"voicemeeter-connector": "*"
+	}
+}
