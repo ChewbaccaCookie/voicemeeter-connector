@@ -7,7 +7,5 @@
 	"scripts": {
 		"start": "node example.js"
 	},
-	"dependencies": {
-		"voicemeeter-connector": "*"
-	}
+	"dependencies": {}
 }

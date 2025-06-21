@@ -7,9 +7,7 @@
 	"scripts": {
 		"start": "npx tsx example.ts"
 	},
-	"dependencies": {
-		"voicemeeter-connector": "*"
-	},
+	"dependencies": {},
 	"devDependencies": {
 		"tsx": "^4.20.3",
 		"typescript": "^5.8.3"
