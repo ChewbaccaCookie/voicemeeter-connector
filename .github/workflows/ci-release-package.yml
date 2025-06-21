@@ -16,11 +16,11 @@ jobs:
             - name: 🏗 Install dependencies
               run: npm install --legacy-peer-deps
 
-            - name: ✒ Check linting / formatting
-              run: npm run lint --if-present
-
             - name: "⚙ Build lib"
               run: npm run build
+
+            - name: ✒ Check linting / formatting
+              run: npm run lint --if-present
 
             - id: publish
               name: "🚀 Publish to NPM"
