@@ -1,0 +1,11 @@
+{
+	"name": "javascript-commonjs-example",
+	"private": true,
+	"type": "commonjs",
+	"description": "Example how to use the Voicemeeter Connector library in CommonJS project.",
+	"main": "example.js",
+	"scripts": {
+		"start": "node example.js"
+	},
+	"dependencies": {}
+}

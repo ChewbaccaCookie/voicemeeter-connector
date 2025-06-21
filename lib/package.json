@@ -1,0 +1,30 @@
+{
+	"name": "voicemeeter-connector",
+	"version": "2.1.0",
+	"description": "A Connector to use the Voicemeeter API",
+	"repository": "https://github.com/ChewbaccaCookie/voicemeeter-connector",
+	"license": "MIT",
+	"source": "src/index.ts",
+	"main": "dist/index.js",
+	"module": "dist/index.module.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "microbundle",
+		"dev": "microbundle watch"
+	},
+	"dependencies": {
+		"koffi": "2.12.0",
+		"winreg": "1.2.5"
+	},
+	"devDependencies": {
+		"@types/node": "24.0.3",
+		"@types/winreg": "1.2.36",
+		"microbundle": "0.15.1",
+		"typescript": "5.8.3"
+	},
+	"keywords": [
+		"voicemeeter",
+		"api",
+		"connector"
+	]
+}
