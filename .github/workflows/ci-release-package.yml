@@ -46,7 +46,6 @@ jobs:
               uses: JS-DevTools/npm-publish@v3
               with:
                   token: ${{ secrets.NPM_TOKEN }}
-                  package: lib
 
             - name: Create GitHub Release
               if: steps.publish.outputs.type != 'none'
