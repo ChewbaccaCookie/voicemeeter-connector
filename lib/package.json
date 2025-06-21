@@ -10,8 +10,7 @@
 	"types": "dist/index.d.ts",
 	"scripts": {
 		"build": "microbundle",
-		"dev": "microbundle watch",
-		"generate-docu": "typedoc --out ./docs src/index.ts"
+		"dev": "microbundle watch"
 	},
 	"dependencies": {
 		"koffi": "2.12.0",
@@ -21,7 +20,6 @@
 		"@types/node": "24.0.3",
 		"@types/winreg": "1.2.36",
 		"microbundle": "0.15.1",
-		"typedoc": "0.28.5",
 		"typescript": "5.8.3"
 	},
 	"keywords": [

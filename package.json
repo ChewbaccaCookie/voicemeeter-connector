@@ -10,6 +10,7 @@
     ],
     "scripts": {
         "format": "npx prettier --write .",
+        "build": "npm run build --workspace=lib",
         "lint": "tsc --project tsconfig.json --noEmit && eslint ."
     },
     "devDependencies": {

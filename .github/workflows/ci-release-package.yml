@@ -8,16 +8,10 @@ jobs:
     publish:
         runs-on: windows-latest
         steps:
-            - uses: actions/checkout@v2
-            - uses: technote-space/auto-cancel-redundant-workflow@v1
-            - uses: actions/setup-node@v1
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
               with:
-                  node-version: 16
-
-            - name: Install native dependencies
-              run: |
-                  choco install python3 -y
-                  npm config set msvs_version 2022
+                  node-version: 20
 
             - name: 🏗 Install dependencies
               run: npm install --legacy-peer-deps
@@ -25,25 +19,17 @@ jobs:
             - name: ✒ Check linting / formatting
               run: npm run lint --if-present
 
-            - name: "⚙ Build package"
+            - name: "⚙ Build lib"
               run: npm run build
-
-            - name: "📃 Generate docu"
-              run: npm run generate-docu
-
-            - name: "📕 Push to GitHub Pages"
-              uses: peaceiris/actions-gh-pages@v3
-              with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
-                  publish_dir: ./docs
 
             - id: publish
               name: "🚀 Publish to NPM"
-              uses: JS-DevTools/npm-publish@v1
+              uses: JS-DevTools/npm-publish@v3
               with:
                   token: ${{ secrets.NPM_TOKEN }}
+                  package: ./lib
 
-            - name: Create Git Release
+            - name: Create GitHub Release
               if: steps.publish.outputs.type != 'none'
               id: create_release
               uses: actions/create-release@v1

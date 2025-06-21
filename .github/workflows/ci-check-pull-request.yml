@@ -4,20 +4,14 @@ on:
         branches: [main]
 
 jobs:
-    check-coding:
-        name: "Check coding"
+    lint-build:
+        name: "Linting / Build"
         runs-on: windows-latest
         steps:
-            - uses: actions/checkout@v2
-            - uses: technote-space/auto-cancel-redundant-workflow@v1
-            - uses: actions/setup-node@v2
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
               with:
-                  node-version: 16
-
-            - name: Install native dependencies
-              run: |
-                  choco install python3 -y
-                  npm config set msvs_version 2022
+                  node-version: 20
 
             - name: 🏗 Install dependencies
               run: npm install --legacy-peer-deps
@@ -25,5 +19,5 @@ jobs:
             - name: ✒ Check linting / formatting
               run: npm run lint --if-present
 
-            - name: "⚙ Check app building"
+            - name: "⚙ Check whether lib can be built"
               run: npm run build
