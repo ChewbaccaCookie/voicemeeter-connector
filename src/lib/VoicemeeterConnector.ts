@@ -2,7 +2,7 @@
 import koffi from "koffi";
 import DLLHandler from "./DLLHandler";
 import { Device, VMLibrary, VoiceMeeterTypes } from "../types/VoicemeeterTypes";
-import { BusProperties, StripProperties } from "./VoicemeeterConsts";
+import { BusProperties, StripProperties, MacroButtonModes } from "./VoicemeeterConsts";
 
 /**
  * @ignore
@@ -45,6 +45,13 @@ export default class Voicemeeter {
 				),
 				VBVMR_GetVoicemeeterType: lib.func("long __stdcall VBVMR_GetVoicemeeterType(_Out_ long* type)"),
 				VBVMR_GetVoicemeeterVersion: lib.func("long __stdcall VBVMR_GetVoicemeeterVersion(_Out_ long* version)"),
+				VBVMR_MacroButton_IsDirty: lib.func("long __stdcall VBVMR_MacroButton_IsDirty(void)"),
+				VBVMR_MacroButton_GetStatus: lib.func(
+					"long __stdcall VBVMR_MacroButton_GetStatus(long nuLogicalButton, _Out_ float* pValue, long bitmode)"
+				),
+				VBVMR_MacroButton_SetStatus: lib.func(
+					"long __stdcall VBVMR_MacroButton_SetStatus(long nuLogicalButton, float fValue, long bitmode)"
+				),
 			};
 
 			instance.isInitialised = true;
@@ -258,10 +265,57 @@ export default class Voicemeeter {
 	};
 
 	/**
+	 * Checks if any macro button has unsaved changes
+	 */
+	public isMacroButtonDirty = () => {
+		return libVM.VBVMR_MacroButton_IsDirty();
+	};
+
+	/**
+	 * Gets the status of a specific macro button
+	 * @param {number} buttonIndex - The index of the macro button
+	 * @param {number} [bitmode=0] - Bit mode parameter (optional, defaults to MacroButtonModes.DEFAULT)
+	 * @returns {number} The current status value of the macro button
+	 * @throws {Error} Throws an error if failed to get the button status
+	 */
+	public getMacroButtonStatus = (buttonIndex: number, bitmode: number = MacroButtonModes.DEFAULT): number => {
+		const valuePtr = [0];
+		const result = libVM.VBVMR_MacroButton_GetStatus(buttonIndex, valuePtr, bitmode);
+		if (result === 0) {
+			return valuePtr[0];
+		}
+		throw new Error(`Failed to get macro button ${buttonIndex} status`);
+	};
+
+	/**
+	 * Sets the status of a specific macro button
+	 * @param {number} buttonIndex - The index of the macro button
+	 * @param {number} value - The status value to set
+	 * @param {number} [bitmode=0] - Bit mode parameter (optional, defaults to MacroButtonModes.DEFAULT)
+	 * @throws {Error} Throws an error if failed to set the button status
+	 */
+	public setMacroButtonStatus = (buttonIndex: number, value: number, bitmode: number = MacroButtonModes.DEFAULT): void => {
+		const result = libVM.VBVMR_MacroButton_SetStatus(buttonIndex, value, bitmode);
+		if (result !== 0) {
+			throw new Error(`Failed to set macro button ${buttonIndex} status`);
+		}
+	};
+
+	/**
 	 * Checks whether properties has been changed and calls all event listeners
 	 */
 	private checkPropertyChange = () => {
+		let hasChanges = false;
+
 		if (this.isParametersDirty() === 1) {
+			hasChanges = true;
+		}
+
+		if (this.isMacroButtonDirty() === 1) {
+			hasChanges = true;
+		}
+
+		if (hasChanges) {
 			this.eventPool.forEach((eventListener) => {
 				eventListener();
 			});
