@@ -5,7 +5,7 @@ on:
         branches: [main]
 
 jobs:
-    publish:
+    build:
         runs-on: windows-latest
         steps:
             - uses: actions/checkout@v4
@@ -21,6 +21,22 @@ jobs:
 
             - name: ✒ Check linting / formatting
               run: npm run lint --if-present
+
+            - id: upload-artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: package
+                  path: lib
+    publish:
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Download package artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: package
 
             - id: publish
               name: "🚀 Publish to NPM"
