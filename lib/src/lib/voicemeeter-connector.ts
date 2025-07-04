@@ -68,27 +68,52 @@ export default class Voicemeeter {
     private type: VoiceMeeterTypes;
     private eventPool = [] as Array<() => void>;
     private stringParameters = ["Label", "FadeTo", "FadeBy", "AppGain", "AppMute", "name", "ip"];
+    private timerInterval: NodeJS.Timeout;
 
     /**
      * Starts a connection to VoiceMeeter
      */
-    public connect = () => {
-        if (!this.isInitialised) {
-            throw new Error("Await the initialisation before connect");
-        }
-        if (this.isConnected) {
-            return;
-        }
-        if (libVM.VBVMR_Login() === 0) {
+    public connect = (): { success: boolean; message: string; code: number } | never => {
+    if (!this.isInitialised) {
+        throw new Error("Await the initialisation before connect");
+    }
+    if (this.isConnected) {
+        // If already connected, still return success status instead of throwing
+        return { success: true, message: "Already connected.", code: 0 }; 
+    }
+
+    const loginResult = libVM.VBVMR_Login();
+    
+    switch (loginResult) {
+        case 0:
+            // Complete success, Voicemeeter is running
             this.isConnected = true;
-            this.type = this.getVoicemeeterType();
-            this.version = this.getVoicemeeterVersion();
-            setInterval(this.checkPropertyChange, 10);
-            return;
-        }
-        this.isConnected = false;
-        throw new Error("Connection failed");
-    };
+            this.type = this.getVoicemeeterType(); 
+            this.version = this.getVoicemeeterVersion(); 
+            this.timerInterval = setInterval(this.checkPropertyChange, 10); 
+            return { success: true, message: "Successfully connected to VoiceMeeter (VM Running).", code: 0 };
+        case 1:
+            // Connected successfully but Voicemeeter application is not running
+            // Pipe is established, can wait for VM to start
+            this.isConnected = true; 
+            this.type = undefined; 
+            this.version = "Unknown";  
+            this.timerInterval = setInterval(this.checkPropertyChange, 10); 
+            return { success: true, message: "Connected to VoiceMeeter API (VM App Not Running).", code: 1 };
+        case -1:
+            // Failed to get client (unexpected error) - throw error
+            this.isConnected = false;
+            throw new Error(`VoiceMeeter connection failed: Unable to get client (Unexpected error -1).`);
+        case -2:
+            // Unexpected login (logout should have been executed first) - throw error
+            this.isConnected = false;
+            throw new Error(`VoiceMeeter connection failed: Unexpected login (Expected logout first -2).`);
+        default:
+            // Unknown return value - throw error
+            this.isConnected = false;
+            throw new Error(`VoiceMeeter connection failed with unknown error code: ${loginResult}.`);
+    }
+};
 
     /**
      * Getter $outputDevices
@@ -131,6 +156,7 @@ export default class Voicemeeter {
         }
         try {
             if (libVM.VBVMR_Logout() === 0) {
+                clearInterval(this.timerInterval);
                 this.isConnected = false;
                 return;
             }
