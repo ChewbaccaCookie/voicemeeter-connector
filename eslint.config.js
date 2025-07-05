@@ -19,4 +19,11 @@ export default [
             "unicorn/number-literal-case": "off",
         },
     },
+    {
+        languageOptions: {
+            globals: {
+                NodeJS: "readonly"
+            }
+        }
+    }
 ];
