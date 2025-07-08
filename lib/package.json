@@ -1,6 +1,6 @@
 {
 	"name": "voicemeeter-connector",
-	"version": "2.1.4",
+	"version": "2.1.5",
 	"description": "A Connector to use the Voicemeeter API",
 	"repository": "https://github.com/ChewbaccaCookie/voicemeeter-connector",
 	"license": "MIT",
