@@ -17,7 +17,7 @@
 		"winreg": "1.2.5"
 	},
 	"devDependencies": {
-		"@types/node": "24.0.10",
+		"@types/node": "24.0.12",
 		"@types/winreg": "1.2.36",
 		"microbundle": "0.15.1",
 		"typescript": "5.8.3"
