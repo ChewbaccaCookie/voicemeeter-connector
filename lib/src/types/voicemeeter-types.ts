@@ -18,6 +18,10 @@ export interface VMLibrary {
     VBVMR_MacroButton_IsDirty: any;
     VBVMR_MacroButton_GetStatus: any;
     VBVMR_MacroButton_SetStatus: any;
+    VBVMR_AudioCallbackRegister: any;
+    VBVMR_AudioCallbackStart: any;
+    VBVMR_AudioCallbackStop: any;
+    VBVMR_AudioCallbackUnregister: any;
 }
 
 export interface Device {
@@ -25,3 +29,34 @@ export interface Device {
     hardwareId: string;
     type: number;
 }
+
+export interface AudioCallbackInfo {
+    sampleRate: number;
+    samplesPerFrame: number;
+}
+
+export interface AudioCallbackBuffer {
+    sampleRate: number;
+    samplesPerFrame: number;
+    numInputs: number;
+    numOutputs: number;
+    inputs: Float32Array[];
+    outputs: Float32Array[];
+}
+
+export interface BaseAudioCallbackArg {
+    lpUser: Buffer | null;
+    nnn: number;
+}
+
+export interface AudioCallbackInfoArg extends BaseAudioCallbackArg {
+    command: "starting" | "change" | "ending";
+    data: AudioCallbackInfo;
+}
+
+export interface AudioCallbackBufferArg extends BaseAudioCallbackArg {
+    command: "buffer_in" | "buffer_out" | "buffer_main";
+    data: AudioCallbackBuffer;
+}
+
+export type AudioCallbackArg = AudioCallbackInfoArg | AudioCallbackBufferArg;

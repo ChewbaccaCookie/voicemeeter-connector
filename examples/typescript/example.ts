@@ -35,8 +35,28 @@ vm.attachChangeEvent(() => {
     console.log("Something changed!");
 });
 
+vm.registerAudioCallback(
+    4,
+    (arg) => {
+        if (arg.command === "starting") {
+            console.log(`Started audio callback with sampleRate: ${arg.data.sampleRate}`);
+        }
+        if (arg.command === "ending") {
+            console.log("Stopped audio callback");
+        }
+    },
+    "ConnectorApp"
+);
+
+vm.startAudioCallback();
+
+setTimeout(() => {
+    vm.unregisterAudioCallback();
+    console.log("Unregistering audio callback");
+}, 5000);
+
 // Disconnect voicemeeter client
 setTimeout(() => {
     vm.disconnect();
     process.exit(0);
-}, 5000);
+}, 20_000);
