@@ -1,10 +1,18 @@
 /* eslint-disable no-control-regex */
 import koffi from "koffi";
 
-import { AudioCallbackArg, AudioCallbackBuffer, AudioCallbackInfo, Device, VMLibrary, VoiceMeeterTypes } from "../types/voicemeeter-types";
+import {
+    AudioCallbackArg,
+    AudioCallbackBuffer,
+    AudioCallbackInfo,
+    Device,
+    VBVMR_T_AUDIOBUFFER,
+    VBVMR_T_AUDIOINFO,
+    VMLibrary,
+    VoiceMeeterTypes,
+} from "../types/voicemeeter-types";
 import {
     AudioBufferStruct,
-    audioCallbackCommandMap,
     AudioCallbackCommands,
     AudioCallbackModes,
     AudioInfoStruct,
@@ -85,9 +93,17 @@ export default class Voicemeeter {
     private eventPool = [] as Array<() => void>;
     private stringParameters = ["Label", "FadeTo", "FadeBy", "AppGain", "AppMute", "name", "ip"];
     private timerInterval: NodeJS.Timeout;
-    private registeredCallbackPtr?: koffi.IKoffiRegisteredCallback;
+    private registeredAudioCallbackPointers: Record<AudioCallbackModes, koffi.IKoffiRegisteredCallback | undefined> = {
+        [AudioCallbackModes.MAIN]: undefined,
+        [AudioCallbackModes.INPUT]: undefined,
+        [AudioCallbackModes.OUTPUT]: undefined,
+    };
     private audioCallbackEnded = true;
-    private pendingAudioCallbackUnregister = false;
+    private pendingAudioCallbackUnregisters: Record<AudioCallbackModes, boolean> = {
+        [AudioCallbackModes.MAIN]: false,
+        [AudioCallbackModes.INPUT]: false,
+        [AudioCallbackModes.OUTPUT]: false,
+    };
 
     /**
      * Starts a connection to VoiceMeeter
@@ -358,37 +374,43 @@ export default class Voicemeeter {
         clientName: string,
         lpUser?: Buffer
     ): void => {
+        if (this.registeredAudioCallbackPointers[mode] !== undefined) {
+            throw new Error(`Audio callback for "${mode}" is already registered.`);
+        }
         const clientNamePtr = Buffer.alloc(64);
         clientNamePtr.write(clientName);
 
-        this.registeredCallbackPtr = koffi.register(
+        this.registeredAudioCallbackPointers[mode] = koffi.register(
             (lpUser: Buffer, nCommand: number, lpData: unknown, nnn: number): number => {
                 try {
                     switch (nCommand) {
                         case AudioCallbackCommands.STARTING: {
                             this.audioCallbackEnded = false;
-                            const data = koffi.decode(lpData, AudioInfoStruct) as AudioCallbackInfo;
-                            callback({ command: audioCallbackCommandMap[nCommand], data, lpUser, nnn });
+                            const data = this.convertToAudioCallbackInfo(lpData);
+                            callback({ command: nCommand, data, lpUser, nnn });
                             break;
                         }
                         case AudioCallbackCommands.ENDING: {
                             this.audioCallbackEnded = true;
-                            const data = koffi.decode(lpData, AudioInfoStruct) as AudioCallbackInfo;
+                            const data = this.convertToAudioCallbackInfo(lpData);
                             try {
-                                callback({ command: audioCallbackCommandMap[nCommand], data, lpUser, nnn });
+                                callback({ command: nCommand, data, lpUser, nnn });
                             } finally {
-                                if (this.pendingAudioCallbackUnregister && this.registeredCallbackPtr !== undefined) {
-                                    koffi.unregister(this.registeredCallbackPtr);
-                                    delete this.registeredCallbackPtr;
-                                    this.pendingAudioCallbackUnregister = false;
+                                if (
+                                    this.pendingAudioCallbackUnregisters[mode] &&
+                                    this.registeredAudioCallbackPointers[mode] !== undefined
+                                ) {
+                                    koffi.unregister(this.registeredAudioCallbackPointers[mode]);
+                                    delete this.registeredAudioCallbackPointers[mode];
+                                    this.pendingAudioCallbackUnregisters[mode] = false;
                                 }
                             }
                             break;
                         }
                         case AudioCallbackCommands.CHANGE: {
-                            const data = koffi.decode(lpData, AudioInfoStruct) as AudioCallbackInfo;
+                            const data = this.convertToAudioCallbackInfo(lpData);
                             try {
-                                callback({ command: audioCallbackCommandMap[nCommand], data, lpUser, nnn });
+                                callback({ command: nCommand, data, lpUser, nnn });
                             } finally {
                                 setTimeout(() => this.startAudioCallback(), 50);
                             }
@@ -397,8 +419,8 @@ export default class Voicemeeter {
                         case AudioCallbackCommands.BUFFER_IN:
                         case AudioCallbackCommands.BUFFER_OUT:
                         case AudioCallbackCommands.BUFFER_MAIN: {
-                            const data = koffi.decode(lpData, AudioBufferStruct) as AudioCallbackBuffer;
-                            callback({ command: audioCallbackCommandMap[nCommand], data, lpUser, nnn });
+                            const data = this.convertToAudioCallbackBuffer(lpData);
+                            callback({ command: nCommand, data, lpUser, nnn });
                             break;
                         }
                         default: {
@@ -413,7 +435,7 @@ export default class Voicemeeter {
             koffi.pointer(koffi.proto("long __stdcall AudioCallback(void* lpUser, long nCommand, void* lpData, long nnn)"))
         );
 
-        const result = libVM.VBVMR_AudioCallbackRegister(mode, this.registeredCallbackPtr, lpUser ?? null, clientNamePtr);
+        const result = libVM.VBVMR_AudioCallbackRegister(mode, this.registeredAudioCallbackPointers[mode], lpUser ?? null, clientNamePtr);
         const outClientName = clientNamePtr.toString().replace("/\u0000+$/g", "");
 
         switch (result) {
@@ -468,18 +490,19 @@ export default class Voicemeeter {
         }
     };
 
-    public unregisterAudioCallback = (): void => {
-        if (this.registeredCallbackPtr === undefined) {
-            throw new Error("No audio callback registered in library");
+    public unregisterAudioCallback = (mode: AudioCallbackModes): void => {
+        if (this.registeredAudioCallbackPointers[mode] === undefined) {
+            throw new Error(`No audio callback registered for "${mode}" in library`);
         }
-        const result = libVM.VBVMR_AudioCallbackUnregister(this.registeredCallbackPtr);
+
+        const result = libVM.VBVMR_AudioCallbackUnregister(this.registeredAudioCallbackPointers[mode]);
         switch (result) {
             case 0: {
                 if (this.audioCallbackEnded) {
-                    koffi.unregister(this.registeredCallbackPtr);
-                    delete this.registeredCallbackPtr;
+                    koffi.unregister(this.registeredAudioCallbackPointers[mode]);
+                    delete this.registeredAudioCallbackPointers[mode];
                 } else {
-                    this.pendingAudioCallbackUnregister = true;
+                    this.pendingAudioCallbackUnregisters[mode] = true;
                 }
                 return;
             }
@@ -487,13 +510,41 @@ export default class Voicemeeter {
                 throw new Error("Failed to unregister audio callback");
             }
             case -2: {
-                delete this.registeredCallbackPtr;
+                delete this.registeredAudioCallbackPointers[mode];
                 throw new Error("Callback already unregistered");
             }
             default: {
                 throw new Error(`Unexpected result unregistering audio callback ${result}`);
             }
         }
+    };
+
+    private convertToAudioCallbackInfo = (lpData: unknown): AudioCallbackInfo => {
+        const rawData = koffi.decode(lpData, AudioInfoStruct) as VBVMR_T_AUDIOINFO;
+        return {
+            sampleRate: rawData.samplerate,
+            samplesPerFrame: rawData.nbSamplePerFrame,
+        };
+    };
+
+    private convertToAudioCallbackBuffer = (lpData: unknown): AudioCallbackBuffer => {
+        const rawData = koffi.decode(lpData, AudioBufferStruct) as VBVMR_T_AUDIOBUFFER;
+        const data: AudioCallbackBuffer = {
+            sampleRate: rawData.audiobuffer_sr,
+            samplesPerFrame: rawData.audiobuffer_nbs,
+            inputChannelCount: rawData.audiobuffer_nbi,
+            outputChannelCount: rawData.audiobuffer_nbo,
+            inputChannels: [],
+            outputChannels: [],
+        };
+
+        for (let i = 0; i < rawData.audiobuffer_nbi; i++) {
+            data.inputChannels.push(new Float32Array(koffi.view(rawData.audiobuffer_r[i], rawData.audiobuffer_nbs * 4)));
+        }
+        for (let i = 0; i < rawData.audiobuffer_nbo; i++) {
+            data.outputChannels.push(new Float32Array(koffi.view(rawData.audiobuffer_w[i], rawData.audiobuffer_nbs * 4)));
+        }
+        return data;
     };
 
     /**

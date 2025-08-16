@@ -55,15 +55,6 @@ export enum MacroButtonModes {
     COLOR = 0x00_00_00_04,
 }
 
-export const audioCallbackCommandMap = {
-    1: "starting",
-    2: "ending",
-    3: "change",
-    10: "buffer_in",
-    11: "buffer_out",
-    20: "buffer_main",
-} as const;
-
 export enum AudioCallbackModes {
     INPUT = 1,
     OUTPUT = 2,

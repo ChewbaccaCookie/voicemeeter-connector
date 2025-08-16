@@ -1,3 +1,5 @@
+import { AudioCallbackCommands } from "../lib/constants";
+
 export type VoiceMeeterTypes = "voicemeeter" | "voicemeeterBanana" | "voicemeeterPotato" | undefined;
 
 export interface VMLibrary {
@@ -30,18 +32,32 @@ export interface Device {
     type: number;
 }
 
+export interface VBVMR_T_AUDIOINFO {
+    samplerate: number;
+    nbSamplePerFrame: number;
+}
+
 export interface AudioCallbackInfo {
     sampleRate: number;
     samplesPerFrame: number;
 }
 
+export interface VBVMR_T_AUDIOBUFFER {
+    audiobuffer_sr: number;
+    audiobuffer_nbs: number;
+    audiobuffer_nbi: number;
+    audiobuffer_nbo: number;
+    audiobuffer_r: Float32Array[];
+    audiobuffer_w: Float32Array[];
+}
+
 export interface AudioCallbackBuffer {
     sampleRate: number;
     samplesPerFrame: number;
-    numInputs: number;
-    numOutputs: number;
-    inputs: Float32Array[];
-    outputs: Float32Array[];
+    inputChannelCount: number;
+    outputChannelCount: number;
+    inputChannels: Float32Array[];
+    outputChannels: Float32Array[];
 }
 
 export interface BaseAudioCallbackArg {
@@ -50,12 +66,12 @@ export interface BaseAudioCallbackArg {
 }
 
 export interface AudioCallbackInfoArg extends BaseAudioCallbackArg {
-    command: "starting" | "change" | "ending";
+    command: AudioCallbackCommands.STARTING | AudioCallbackCommands.CHANGE | AudioCallbackCommands.ENDING;
     data: AudioCallbackInfo;
 }
 
 export interface AudioCallbackBufferArg extends BaseAudioCallbackArg {
-    command: "buffer_in" | "buffer_out" | "buffer_main";
+    command: AudioCallbackCommands.BUFFER_IN | AudioCallbackCommands.BUFFER_OUT | AudioCallbackCommands.BUFFER_MAIN;
     data: AudioCallbackBuffer;
 }
 
