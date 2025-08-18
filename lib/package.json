@@ -1,6 +1,6 @@
 {
 	"name": "voicemeeter-connector",
-	"version": "2.1.5",
+	"version": "2.2.0",
 	"description": "A Connector to use the Voicemeeter API",
 	"repository": "https://github.com/ChewbaccaCookie/voicemeeter-connector",
 	"license": "MIT",
@@ -13,7 +13,7 @@
 		"dev": "microbundle watch"
 	},
 	"dependencies": {
-		"koffi": "2.12.1",
+		"koffi": "2.13.0",
 		"winreg": "1.2.5"
 	},
 	"devDependencies": {
