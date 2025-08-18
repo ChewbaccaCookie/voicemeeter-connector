@@ -54,12 +54,12 @@ switch (vm.$type) {
         break;
     }
 }
+
 // This callback just passes through the audio signal to the output channels, without any changes
 const simplePassthroughCallback = (arg: types.AudioCallbackArg) => {
     if (arg.command === AudioCallbackCommands.BUFFER_MAIN) {
         const { outputChannels, inputChannels, samplesPerFrame } = arg.data;
         for (const [ch, outputChannel] of outputChannels.entries()) {
-            console.log(outputChannel[0]);
             for (let i = 0; i < samplesPerFrame; i++) {
                 outputChannel[i] = inputChannels[inputOffset + ch][i];
             }
@@ -72,8 +72,12 @@ const simplePassthroughCallback = (arg: types.AudioCallbackArg) => {
         console.log("Stopped audio callback");
     }
 };
+
 // Register the audio callback
-vm.registerAudioCallback(AudioCallbackModes.MAIN, simplePassthroughCallback, "ConnectorApp");
+vm.registerAudioCallback(AudioCallbackModes.MAIN, simplePassthroughCallback, "ConnectorApp", undefined, (error, arg) => {
+    // Log any error that occured in the callback
+    console.error(error, arg === undefined ? "With arg not defined" : `With arg ${arg}`);
+});
 
 // Start the audio callback
 vm.startAudioCallback();

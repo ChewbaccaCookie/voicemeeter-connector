@@ -1,3 +1,5 @@
+import { IKoffiRegisteredCallback } from "koffi";
+
 import { AudioCallbackCommands } from "../lib/constants";
 
 export type VoiceMeeterTypes = "voicemeeter" | "voicemeeterBanana" | "voicemeeterPotato" | undefined;
@@ -49,6 +51,12 @@ export interface VBVMR_T_AUDIOBUFFER {
     audiobuffer_nbo: number;
     audiobuffer_r: Float32Array[];
     audiobuffer_w: Float32Array[];
+}
+
+export interface AudioCallbackState {
+    pointer: IKoffiRegisteredCallback | undefined;
+    pendingUnregister: boolean;
+    ended: boolean;
 }
 
 export interface AudioCallbackBuffer {

@@ -55,6 +55,12 @@ export enum MacroButtonModes {
     COLOR = 0x00_00_00_04,
 }
 
+export const InitialAudioCallbackState = {
+    pointer: undefined,
+    pendingUnregister: false,
+    ended: true,
+};
+
 export enum AudioCallbackModes {
     INPUT = 1,
     OUTPUT = 2,

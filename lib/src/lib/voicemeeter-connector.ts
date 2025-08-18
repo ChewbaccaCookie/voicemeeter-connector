@@ -5,6 +5,7 @@ import {
     AudioCallbackArg,
     AudioCallbackBuffer,
     AudioCallbackInfo,
+    AudioCallbackState,
     Device,
     VBVMR_T_AUDIOBUFFER,
     VBVMR_T_AUDIOINFO,
@@ -17,6 +18,7 @@ import {
     AudioCallbackModes,
     AudioInfoStruct,
     BusProperties,
+    InitialAudioCallbackState,
     MacroButtonModes,
     StripProperties,
 } from "./constants";
@@ -93,16 +95,10 @@ export default class Voicemeeter {
     private eventPool = [] as Array<() => void>;
     private stringParameters = ["Label", "FadeTo", "FadeBy", "AppGain", "AppMute", "name", "ip"];
     private timerInterval: NodeJS.Timeout;
-    private registeredAudioCallbackPointers: Record<AudioCallbackModes, koffi.IKoffiRegisteredCallback | undefined> = {
-        [AudioCallbackModes.MAIN]: undefined,
-        [AudioCallbackModes.INPUT]: undefined,
-        [AudioCallbackModes.OUTPUT]: undefined,
-    };
-    private audioCallbackEnded = true;
-    private pendingAudioCallbackUnregisters: Record<AudioCallbackModes, boolean> = {
-        [AudioCallbackModes.MAIN]: false,
-        [AudioCallbackModes.INPUT]: false,
-        [AudioCallbackModes.OUTPUT]: false,
+    private audioCallbackStates: Record<AudioCallbackModes, AudioCallbackState> = {
+        [AudioCallbackModes.MAIN]: InitialAudioCallbackState,
+        [AudioCallbackModes.INPUT]: InitialAudioCallbackState,
+        [AudioCallbackModes.OUTPUT]: InitialAudioCallbackState,
     };
 
     /**
@@ -372,70 +368,81 @@ export default class Voicemeeter {
         mode: AudioCallbackModes,
         callback: (arg: AudioCallbackArg) => void,
         clientName: string,
-        lpUser?: Buffer
+        lpUser?: Buffer,
+        errorCallback?: (err: unknown, arg?: AudioCallbackArg) => void
     ): void => {
-        if (this.registeredAudioCallbackPointers[mode] !== undefined) {
+        if (this.audioCallbackStates[mode].pointer !== undefined) {
             throw new Error(`Audio callback for "${mode}" is already registered.`);
         }
-        const clientNamePtr = Buffer.alloc(64);
-        clientNamePtr.write(clientName);
 
-        this.registeredAudioCallbackPointers[mode] = koffi.register(
+        this.audioCallbackStates[mode].pointer = koffi.register(
             (lpUser: Buffer, nCommand: number, lpData: unknown, nnn: number): number => {
+                let audioCallbackArg: AudioCallbackArg | undefined;
+
                 try {
                     switch (nCommand) {
                         case AudioCallbackCommands.STARTING: {
-                            this.audioCallbackEnded = false;
-                            const data = this.convertToAudioCallbackInfo(lpData);
-                            callback({ command: nCommand, data, lpUser, nnn });
+                            this.audioCallbackStates[mode].ended = false;
+                            audioCallbackArg = { lpUser, nnn, command: nCommand, data: this.convertToAudioCallbackInfo(lpData) };
                             break;
                         }
                         case AudioCallbackCommands.ENDING: {
-                            this.audioCallbackEnded = true;
-                            const data = this.convertToAudioCallbackInfo(lpData);
-                            try {
-                                callback({ command: nCommand, data, lpUser, nnn });
-                            } finally {
-                                if (
-                                    this.pendingAudioCallbackUnregisters[mode] &&
-                                    this.registeredAudioCallbackPointers[mode] !== undefined
-                                ) {
-                                    koffi.unregister(this.registeredAudioCallbackPointers[mode]);
-                                    delete this.registeredAudioCallbackPointers[mode];
-                                    this.pendingAudioCallbackUnregisters[mode] = false;
-                                }
-                            }
+                            this.audioCallbackStates[mode].ended = true;
+                            audioCallbackArg = { lpUser, nnn, command: nCommand, data: this.convertToAudioCallbackInfo(lpData) };
                             break;
                         }
                         case AudioCallbackCommands.CHANGE: {
-                            const data = this.convertToAudioCallbackInfo(lpData);
-                            try {
-                                callback({ command: nCommand, data, lpUser, nnn });
-                            } finally {
-                                setTimeout(() => this.startAudioCallback(), 50);
-                            }
+                            audioCallbackArg = { lpUser, nnn, command: nCommand, data: this.convertToAudioCallbackInfo(lpData) };
+                            /*
+                                CHANGE occurs when the main audio stream, sample rate or buffer size has changed.
+                                restart stream after a few ms 
+                            */
+                            setTimeout(() => this.startAudioCallback(), 50);
                             break;
                         }
                         case AudioCallbackCommands.BUFFER_IN:
                         case AudioCallbackCommands.BUFFER_OUT:
                         case AudioCallbackCommands.BUFFER_MAIN: {
-                            const data = this.convertToAudioCallbackBuffer(lpData);
-                            callback({ command: nCommand, data, lpUser, nnn });
+                            audioCallbackArg = { lpUser, nnn, command: nCommand, data: this.convertToAudioCallbackBuffer(lpData) };
                             break;
                         }
                         default: {
                             return 0;
                         }
                     }
-                } catch {
-                    // DRAFT What to do with errors? Catching is to prevent N-API errors
+
+                    try {
+                        callback(audioCallbackArg);
+                    } catch (error: unknown) {
+                        if (errorCallback !== undefined) {
+                            errorCallback(error, audioCallbackArg);
+                        }
+                    }
+
+                    if (
+                        nCommand === AudioCallbackCommands.ENDING &&
+                        this.audioCallbackStates[mode].pendingUnregister &&
+                        this.audioCallbackStates[mode].pointer !== undefined
+                    ) {
+                        koffi.unregister(this.audioCallbackStates[mode].pointer);
+                        delete this.audioCallbackStates[mode].pointer;
+                        this.audioCallbackStates[mode].pendingUnregister = false;
+                    }
+                } catch (error: unknown) {
+                    // Library error
+                    if (errorCallback !== undefined) {
+                        errorCallback(error, audioCallbackArg);
+                    }
                 }
                 return 0;
             },
             koffi.pointer(koffi.proto("long __stdcall AudioCallback(void* lpUser, long nCommand, void* lpData, long nnn)"))
         );
 
-        const result = libVM.VBVMR_AudioCallbackRegister(mode, this.registeredAudioCallbackPointers[mode], lpUser ?? null, clientNamePtr);
+        const clientNamePtr = Buffer.alloc(64);
+        clientNamePtr.write(clientName);
+
+        const result = libVM.VBVMR_AudioCallbackRegister(mode, this.audioCallbackStates[mode].pointer, lpUser ?? null, clientNamePtr);
         const outClientName = clientNamePtr.toString().replace("/\u0000+$/g", "");
 
         switch (result) {
@@ -491,18 +498,19 @@ export default class Voicemeeter {
     };
 
     public unregisterAudioCallback = (mode: AudioCallbackModes): void => {
-        if (this.registeredAudioCallbackPointers[mode] === undefined) {
+        if (this.audioCallbackStates[mode].pointer === undefined) {
             throw new Error(`No audio callback registered for "${mode}" in library`);
         }
 
-        const result = libVM.VBVMR_AudioCallbackUnregister(this.registeredAudioCallbackPointers[mode]);
+        const result = libVM.VBVMR_AudioCallbackUnregister(this.audioCallbackStates[mode].pointer);
         switch (result) {
             case 0: {
-                if (this.audioCallbackEnded) {
-                    koffi.unregister(this.registeredAudioCallbackPointers[mode]);
-                    delete this.registeredAudioCallbackPointers[mode];
+                // It is not safe to unregister when the callback hasn't been stopped, wait for ENDING first
+                if (this.audioCallbackStates[mode].ended) {
+                    koffi.unregister(this.audioCallbackStates[mode].pointer);
+                    delete this.audioCallbackStates[mode].pointer;
                 } else {
-                    this.pendingAudioCallbackUnregisters[mode] = true;
+                    this.audioCallbackStates[mode].pendingUnregister = true;
                 }
                 return;
             }
@@ -510,7 +518,7 @@ export default class Voicemeeter {
                 throw new Error("Failed to unregister audio callback");
             }
             case -2: {
-                delete this.registeredAudioCallbackPointers[mode];
+                delete this.audioCallbackStates[mode].pointer;
                 throw new Error("Callback already unregistered");
             }
             default: {
