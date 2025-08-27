@@ -56,8 +56,8 @@ export enum MacroButtonModes {
 }
 
 export const InitialAudioCallbackState = {
-    pointer: undefined,
-    pendingUnregister: false,
+    pointer: null,
+    awaitUnregister: [],
     ended: true,
 };
 

@@ -34,6 +34,8 @@ export interface Device {
     type: number;
 }
 
+export type AudioCallbackFunction = (error: Error | null, event?: AudioCallbackEvent) => void;
+
 export interface VBVMR_T_AUDIOINFO {
     samplerate: number;
     nbSamplePerFrame: number;
@@ -54,8 +56,8 @@ export interface VBVMR_T_AUDIOBUFFER {
 }
 
 export interface AudioCallbackState {
-    pointer: IKoffiRegisteredCallback | undefined;
-    pendingUnregister: boolean;
+    pointer: IKoffiRegisteredCallback | null;
+    awaitUnregister: Array<() => void>;
     ended: boolean;
 }
 
@@ -68,19 +70,19 @@ export interface AudioCallbackBuffer {
     outputChannels: Float32Array[];
 }
 
-export interface BaseAudioCallbackArg {
+export interface BaseAudioCallbackEvent {
     lpUser: Buffer | null;
     nnn: number;
 }
 
-export interface AudioCallbackInfoArg extends BaseAudioCallbackArg {
+export interface AudioCallbackInfoEvent extends BaseAudioCallbackEvent {
     command: AudioCallbackCommands.STARTING | AudioCallbackCommands.CHANGE | AudioCallbackCommands.ENDING;
     data: AudioCallbackInfo;
 }
 
-export interface AudioCallbackBufferArg extends BaseAudioCallbackArg {
+export interface AudioCallbackBufferEvent extends BaseAudioCallbackEvent {
     command: AudioCallbackCommands.BUFFER_IN | AudioCallbackCommands.BUFFER_OUT | AudioCallbackCommands.BUFFER_MAIN;
     data: AudioCallbackBuffer;
 }
 
-export type AudioCallbackArg = AudioCallbackInfoArg | AudioCallbackBufferArg;
+export type AudioCallbackEvent = AudioCallbackInfoEvent | AudioCallbackBufferEvent;
