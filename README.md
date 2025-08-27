@@ -223,6 +223,29 @@ Refresh the list of available input and output devices.
 vm.updateDeviceList();
 ```
 
+### VB-Audio Callback
+
+Register an audio callback, start/stop and unregister.
+
+```typescript
+vm.registerAudioCallback(AudioCallbackModes.MAIN, "Your client name", someAudioCallbackFunction);
+await vm.startAudioCallback();
+await vm.stopAudioCallback();
+await vm.unregisterAudioCallback();
+```
+
+**AudioCallbackModes enum values:**
+
+- `INPUT` (0x00000001): Voicemeeter Input Insert 
+- `OUTPUT` (0x00000002): Voicemeeter Output Insert
+- `MAIN` (0x00000004): Voicemeeter Main
+
+**Audio Callback Examples:**
+
+- **TypeScript:** [`examples/typescript/example-audiocallback.ts`](examples/typescript/example-audiocallback.ts)
+- **ESM JavaScript:** [`examples/javascript-module/example-audiocallback.js`](examples/javascript-module/example-audiocallback.js)
+- **CommonJS JavaScript:** [`examples/javascript-commonjs/example-audiocallback.js`](examples/javascript-commonjs/example-audiocallback.js)
+
 ### Disconnecting
 
 Gracefully disconnects from the Voicemeeter client.

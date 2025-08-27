@@ -1,5 +1,4 @@
-import { types } from "voicemeeter-connector";
-import { AudioCallbackCommands, AudioCallbackModes, MacroButtonModes, StripProperties, Voicemeeter } from "voicemeeter-connector";
+import { AudioCallbackCommands, AudioCallbackModes, MacroButtonModes, StripProperties, types, Voicemeeter } from "voicemeeter-connector";
 
 const vm = await Voicemeeter.init();
 // Connect to your voicemeeter client
@@ -36,60 +35,56 @@ vm.attachChangeEvent(() => {
     console.log("Something changed!");
 });
 
-// VB-Audio Callback example:
+/* 
+    Basic VB-Audio Callback example
+    more advanced examples in the example-audiocallback.ts file
+*/
+// Index at which the first bus output starts in inputChannels (for the MAIN stream)
+const offset = vm.$type === undefined ? 0 : Voicemeeter.inputChannelCountMap[vm.$type];
 
-// Index at which the first bus output starts in inputChannels
-let inputOffset = 0;
-switch (vm.$type) {
-    case "voicemeeter": {
-        inputOffset = 12;
-        break;
+/*  
+    This callback just passes through the output channels after output INSERT (in inputChannels), to the output channels.
+    To passthrough output to output, it would be better to use BUFFER_OUT here, since you don't need the strip signal. Allowing another application to use BUFFER_MAIN
+*/
+const simplePassthroughCallback = (error: Error | null, event?: types.AudioCallbackEvent) => {
+    // Handle errors
+    if (error !== null) {
+        console.error(error, event === undefined ? undefined : JSON.stringify(event));
+        return;
     }
-    case "voicemeeterBanana": {
-        inputOffset = 22;
-        break;
+    if (event === undefined) {
+        console.error("Event data undefined.");
+        return;
     }
-    default: {
-        inputOffset = 34;
-        break;
-    }
-}
 
-// This callback just passes through the audio signal to the output channels, without any changes
-const simplePassthroughCallback = (arg: types.AudioCallbackArg) => {
-    if (arg.command === AudioCallbackCommands.BUFFER_MAIN) {
-        const { outputChannels, inputChannels, samplesPerFrame } = arg.data;
+    if (event.command === AudioCallbackCommands.BUFFER_MAIN) {
+        const { outputChannels, inputChannels, samplesPerFrame } = event.data;
         for (const [ch, outputChannel] of outputChannels.entries()) {
             for (let i = 0; i < samplesPerFrame; i++) {
-                outputChannel[i] = inputChannels[inputOffset + ch][i];
+                outputChannel[i] = inputChannels[offset + ch][i];
             }
         }
-    }
-    if (arg.command === AudioCallbackCommands.STARTING) {
-        console.log(`Started audio callback with sampleRate: ${arg.data.sampleRate}`);
-    }
-    if (arg.command === AudioCallbackCommands.ENDING) {
-        console.log("Stopped audio callback");
     }
 };
 
 // Register the audio callback
-vm.registerAudioCallback(AudioCallbackModes.MAIN, simplePassthroughCallback, "ConnectorApp", undefined, (error, arg) => {
-    // Log any error that occured in the callback
-    console.error(error, arg === undefined ? "With arg not defined" : `With arg ${arg}`);
-});
+vm.registerAudioCallback(AudioCallbackModes.MAIN, "Cool client name", simplePassthroughCallback);
+console.log("Registered audio callback.");
 
 // Start the audio callback
-vm.startAudioCallback();
+await vm.startAudioCallback().catch((error) => {
+    console.error(error);
+});
+console.log("Started audio callback.");
 
-// Stop the audio callback after 5s
-setTimeout(() => {
-    console.log("Unregistering audio callback");
-    vm.unregisterAudioCallback(AudioCallbackModes.MAIN);
-}, 5000);
+// Explicitly unregister and disconnect voicemeeter client
+setTimeout(async () => {
+    await vm.unregisterAudioCallback(AudioCallbackModes.MAIN).catch((error) => {
+        console.error(error);
+    });
+    console.log("Unregistered audio callback.");
 
-// Disconnect voicemeeter client
-setTimeout(() => {
     vm.disconnect();
+    console.log("Disconnected voicemeeter.");
     process.exit(0);
 }, 20_000);

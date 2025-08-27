@@ -5,9 +5,9 @@
 	"description": "Examples how to use the Voicemeeter Connector library in a TypeScript module project.",
 	"main": "example.js",
 	"scripts": {
-		"start": "npx tsx example.ts"
+		"start": "npx tsx example.ts",
+		"start:callback": "npx tsx example-audiocallback.ts"
 	},
-	"dependencies": {},
 	"devDependencies": {
 		"tsx": "^4.20.3",
 		"typescript": "^5.8.3"
