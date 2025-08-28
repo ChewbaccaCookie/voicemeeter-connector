@@ -171,7 +171,7 @@ void Voicemeeter.init().then(async (vm) => {
 
     // Output recorded audio signal to first bus
     let playbackPosition = 0;
-    const playAudioFile = (event) => {
+    const playRecordedAudio = (event) => {
         if (event.command === AudioCallbackCommands.STARTING) {
             playbackPosition = 0;
         }
@@ -216,7 +216,7 @@ void Voicemeeter.init().then(async (vm) => {
     await tryAudioCallback(AudioCallbackModes.OUTPUT, "Output recorder", audioCallbackFactory(recordOutputChannel));
 
     console.log("==== Playing recorded audio ====");
-    await tryAudioCallback(AudioCallbackModes.OUTPUT, "Audio playbacker", audioCallbackFactory(playAudioFile));
+    await tryAudioCallback(AudioCallbackModes.OUTPUT, "Audio playbacker", audioCallbackFactory(playRecordedAudio));
 
     console.log("Disconnecting voicemeeter.");
     vm.disconnect();
