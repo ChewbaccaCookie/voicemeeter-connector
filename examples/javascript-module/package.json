@@ -5,7 +5,8 @@
 	"description": "Examples how to use the Voicemeeter Connector library in a JavaScript module project.",
 	"main": "example.js",
 	"scripts": {
-		"start": "node example.js"
+		"start": "node example.js",
+		"start:callback": "node example-audiocallback.js"
 	},
 	"dependencies": {}
 }

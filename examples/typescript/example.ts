@@ -1,4 +1,4 @@
-import { MacroButtonModes, StripProperties, Voicemeeter } from "voicemeeter-connector";
+import { AudioCallbackCommands, AudioCallbackModes, MacroButtonModes, StripProperties, types, Voicemeeter } from "voicemeeter-connector";
 
 const vm = await Voicemeeter.init();
 // Connect to your voicemeeter client
@@ -35,8 +35,56 @@ vm.attachChangeEvent(() => {
     console.log("Something changed!");
 });
 
-// Disconnect voicemeeter client
-setTimeout(() => {
+/* 
+    Basic VB-Audio Callback example
+    more advanced examples in the example-audiocallback.ts file
+*/
+// Index at which the first bus output starts in inputChannels (for the MAIN stream)
+const offset = vm.$type === undefined ? 0 : Voicemeeter.inputChannelCountMap[vm.$type];
+
+/*  
+    This callback just passes through the output channels after output INSERT (in inputChannels), to the output channels.
+    To passthrough output to output, it would be better to use BUFFER_OUT here, since you don't need the strip signal. Allowing another application to use BUFFER_MAIN
+*/
+const simplePassthroughCallback = (error: Error | null, event?: types.AudioCallbackEvent) => {
+    // Handle errors
+    if (error !== null) {
+        console.error(error, event === undefined ? undefined : JSON.stringify(event));
+        return;
+    }
+    if (event === undefined) {
+        console.error("Event data undefined.");
+        return;
+    }
+
+    if (event.command === AudioCallbackCommands.BUFFER_MAIN) {
+        const { outputChannels, inputChannels, samplesPerFrame } = event.data;
+        for (const [ch, outputChannel] of outputChannels.entries()) {
+            for (let i = 0; i < samplesPerFrame; i++) {
+                outputChannel[i] = inputChannels[offset + ch][i];
+            }
+        }
+    }
+};
+
+// Register the audio callback
+vm.registerAudioCallback(AudioCallbackModes.MAIN, "Cool client name", simplePassthroughCallback);
+console.log("Registered audio callback.");
+
+// Start the audio callback
+await vm.startAudioCallback().catch((error) => {
+    console.error(error);
+});
+console.log("Started audio callback.");
+
+// Explicitly unregister and disconnect voicemeeter client
+setTimeout(async () => {
+    await vm.unregisterAudioCallback(AudioCallbackModes.MAIN).catch((error) => {
+        console.error(error);
+    });
+    console.log("Unregistered audio callback.");
+
     vm.disconnect();
+    console.log("Disconnected voicemeeter.");
     process.exit(0);
-}, 5000);
+}, 20_000);

@@ -1,3 +1,5 @@
+import koffi from "koffi";
+
 export const InterfaceTypes = {
     strip: 0,
     bus: 1,
@@ -52,3 +54,38 @@ export enum MacroButtonModes {
     TRIGGER = 0x00_00_00_03,
     COLOR = 0x00_00_00_04,
 }
+
+export const InitialAudioCallbackState = {
+    pointer: null,
+    awaitUnregister: [],
+    ended: true,
+};
+
+export enum AudioCallbackModes {
+    INPUT = 1,
+    OUTPUT = 2,
+    MAIN = 4,
+}
+
+export enum AudioCallbackCommands {
+    STARTING = 1,
+    ENDING = 2,
+    CHANGE = 3,
+    BUFFER_IN = 10,
+    BUFFER_OUT = 11,
+    BUFFER_MAIN = 20,
+}
+
+export const AudioInfoStruct = koffi.struct("VBVMR_T_AUDIOINFO", {
+    samplerate: "long",
+    nbSamplePerFrame: "long",
+});
+
+export const AudioBufferStruct = koffi.struct("VBVMR_T_AUDIOBUFFER", {
+    audiobuffer_sr: "long",
+    audiobuffer_nbs: "long",
+    audiobuffer_nbi: "long",
+    audiobuffer_nbo: "long",
+    audiobuffer_r: koffi.array("float*", 128),
+    audiobuffer_w: koffi.array("float*", 128),
+});
