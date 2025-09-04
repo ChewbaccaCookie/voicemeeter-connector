@@ -318,11 +318,7 @@ export default class Voicemeeter {
         if (this.stringParameters.some((str) => parameterName.includes(str))) {
             const strPtr = Buffer.alloc(512);
             libVM.VBVMR_GetParameterStringA(parameterName, strPtr);
-            return [...String.fromCharCode.apply(null, strPtr)]
-                .filter((e: string) => {
-                    return e !== "\0";
-                })
-                .join("");
+            return strPtr.toString().replaceAll(/\u0000+$/g, "");
         }
         const valuePtr = [0];
         libVM.VBVMR_GetParameterFloat(parameterName, valuePtr);
@@ -514,7 +510,7 @@ export default class Voicemeeter {
             }
             // VoicemeeterRemote.h says this case should have result = 1, but in reality this appears to be -2
             case -2: {
-                const outClientName = clientNamePtr.toString().replace("/\u0000+$/g", "");
+                const outClientName = clientNamePtr.toString().replaceAll(/\u0000+$/g, "");
                 throw new Error(`Audio callback already registered by: ${outClientName}`);
             }
             default: {
