@@ -17,10 +17,10 @@
 		"winreg": "1.2.5"
 	},
 	"devDependencies": {
-		"@types/node": "24.3.1",
+		"@types/node": "24.9.2",
 		"@types/winreg": "1.2.36",
 		"microbundle": "0.15.1",
-		"typescript": "5.9.2"
+		"typescript": "5.9.3"
 	},
 	"keywords": [
 		"voicemeeter",
