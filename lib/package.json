@@ -13,7 +13,7 @@
 		"dev": "microbundle watch"
 	},
 	"dependencies": {
-		"koffi": "2.14.0",
+		"koffi": "2.14.1",
 		"winreg": "1.2.5"
 	},
 	"devDependencies": {
