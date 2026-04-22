@@ -20,7 +20,7 @@
 		"@types/node": "24.10.15",
 		"@types/winreg": "1.2.36",
 		"microbundle": "0.15.1",
-		"typescript": "5.9.3"
+		"typescript": "6.0.3"
 	},
 	"keywords": [
 		"voicemeeter",
